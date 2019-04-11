@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Project:  NextGIS Tracker
+  ~ Purpose:  Software tracker for nextgis.com cloud
+  ~ Author:   Dmitry Baryshnikov <dmitry.baryshnikov@nextgis.com>
+  ~ *****************************************************************************
+  ~ Copyright (c) 2018-2019 NextGIS <info@nextgis.com>
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:combobox="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".activity.SettingsActivity"
+        android:background="@android:color/white"
+    >
+
+    <com.google.android.material.appbar.AppBarLayout
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+        <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:contentInsetStartWithNavigation="0dp"
+                app:popupTheme="@style/AppTheme.PopupOverlay"/>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    >
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                  android:orientation="vertical"
+    >
+
+        <TextView
+                android:text="@string/tracks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:id="@+id/tracks_tv"
+                android:textColor="@color/colorSectionText" android:textStyle="bold"
+                android:layout_marginLeft="16dp" android:layout_marginRight="16dp" android:layout_marginTop="16dp"/>
+        <Switch
+                android:text="@string/divide_tracks_by_days"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:id="@+id/divTrackByDay" android:layout_margin="16dp"
+                android:textSize="16sp" android:textColorLink="@color/colorSectionText" android:checked="false"/>
+
+        <com.nextgis.maplib.control.Combobox
+                android:id="@+id/timeInterval"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                combobox:alt_text="@string/coord_pick_interval"
+                combobox:entries="@array/tracker_min_time_between_updates"
+                combobox:values="@array/tracker_min_time_between_updates_val"
+                app:default_value="10"/>
+
+        <com.nextgis.maplib.control.Combobox
+                android:id="@+id/minDistance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                combobox:alt_text="@string/minimum_distance"
+                combobox:entries="@array/tracker_min_dist_update"
+                combobox:values="@array/tracker_min_dist_update_val"
+                app:default_value="50">
+        </com.nextgis.maplib.control.Combobox>
+
+        <TextView
+                android:text="@string/sync_with_ngw"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:id="@+id/sync_tv"
+                android:textColor="@color/colorSectionText" android:textStyle="bold" android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp" android:layout_marginTop="16dp"/>
+
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:layout_gravity="center" android:layout_weight="6">
+                <TextView
+                        android:text="@string/device_id"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" android:id="@+id/deviceid_tv"
+                        android:textAlignment="center"/>
+                <TextView
+                        android:text="@string/three_dots"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" android:id="@+id/device_Id"
+                        android:textSize="16sp" android:textColor="@android:color/black"
+                        android:textAlignment="center"/>
+            </LinearLayout>
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" combobox:srcCompat="@drawable/ic_refresh"
+                    android:id="@+id/regenerateId" android:layout_weight="1"
+                    android:contentDescription="@string/refresh_device_id" android:minHeight="32dp"
+                    android:minWidth="32dp" android:layout_gravity="center"/>
+        </LinearLayout>
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" android:layout_marginTop="16dp" android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp">
+            <Button
+                    android:text="@string/share_device_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/shareButton" android:layout_weight="1"
+                    style="@style/Widget.AppCompat.Button.Borderless" android:textColor="@color/colorSectionText"/>
+            <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/createInNgwButton" android:layout_weight="1"
+                    android:text="@string/create_in_ngw" style="@style/Widget.AppCompat.Button.Borderless"
+                    android:textColor="@color/colorSectionText"/>
+        </LinearLayout>
+
+        <Switch
+                android:text="@string/send_to_web_gis"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:id="@+id/sendToNgw" android:layout_margin="16dp"
+                android:textSize="16sp" android:enabled="false"/>
+
+        <TextView
+                android:text="@string/send_to_ngw_explanation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:id="@+id/sync_ngw_tv"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp" android:layout_marginBottom="16dp" android:textStyle="italic"/>
+
+        <com.nextgis.maplib.control.Combobox
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" android:id="@+id/sendInterval"
+                combobox:alt_text="@string/sync_interval_sec" combobox:entries="@array/sync_time"
+                combobox:values="@array/sync_time_val" combobox:default_value="1200"/>
+        <com.nextgis.maplib.control.Combobox
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" android:id="@+id/sendPointMax"
+                combobox:alt_text="@string/max_pt_send_at_once" combobox:entries="@array/max_pt_count"
+                combobox:values="@array/max_pt_count_val" combobox:default_value="100"/>
+    </LinearLayout>
+    </ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

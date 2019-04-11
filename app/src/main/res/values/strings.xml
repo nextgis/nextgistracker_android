@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">NextGIS Tracker</string>
+    <string name="action_settings">Settings</string>
+    <string name="tracks">Tracks</string>
+    <string name="divide_tracks_by_days">Divide tracks by days</string>
+    <string name="send_to_web_gis">Send to Web GIS</string>
+    <string name="coord_pick_interval">Coordinate pick time interval, sec</string>
+    <string name="most_frequently">Most frequently</string>
+    <string name="minimum_distance">Minimum distance to pick coordinates, m</string>
+    <string name="send_to_ngw_explanation">You need to add your device ID to your web GIS in order to send tracks to it.
+        After adding device ID to web GIS the switch will unlock.
+    </string>
+    <string name="device_id">Device ID</string>
+    <string name="sync_with_ngw">Sync with web GIS</string>
+    <string name="sync_interval_sec">Sync interval, sec</string>
+    <string name="max_pt_send_at_once">Max points to send at once</string>
+    <string name="share_device_id">Share device ID</string>
+    <string name="create_in_ngw">Create in web GIS</string>
+    <string name="refresh_device_id">Refresh device identifier</string>
+    <string name="refresh_device_id_message">Are you sure you want to change the device ID?
+        In case the device was registered to a web GIS, the transfer of tracks will be stopped. After changing the
+        device ID, it must be added to the web GIS again.</string>
+    <string name="change">Change</string>
+    <string name="tracker_image">Tracker image</string>
+    <string name="more_menu">More menu</string>
+    <string name="track_days">%d days</string>
+    <string name="share_gpx">Share GPX track</string>
+    <string name="share_text">Please add my tracker with ID \'%s\' to your web GIS.</string>
+    <string name="share_subj">Add tracker to NextGIS Web</string>
+    <string name="share_tracker_id">Share tracker ID</string>
+    <string name="send_track">Send track %s</string>
+</resources>
