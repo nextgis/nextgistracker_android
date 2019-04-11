@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity() {
             mHasGPSPerm = true
         }
 
-        Sentry.init(SENTRY_DSN, AndroidSentryClientFactory(this))
+        Sentry.init(SENTRY_DSN, AndroidSentryClientFactory(applicationContext))
 
         API.init(this@MainActivity)
 
@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity() {
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadCastReceiver, filter)
 
         val store = API.getStore()
-        val tracksTable = store.trackTable()
+        val tracksTable = store?.trackTable()
         if(tracksTable != null) {
             tracksList.setHasFixedSize(true)
             mTracksAdapter = TrackAdapter(this, tracksTable)

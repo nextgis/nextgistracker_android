@@ -127,9 +127,9 @@ class TrackAdapter(private val context: Context, private val tracksTable: Track)
             val newName = "track_${sdf.format(start)}"
             val tmp = API.getTmpDirectory()
             // Get or create share directory in tmp folder. Path to share directory is in file provider config.
-            var tmpShare = tmp.child("share")
+            var tmpShare = tmp?.child("share")
             if(tmpShare == null) {
-                tmpShare = tmp.createDirectory("share")
+                tmpShare = tmp?.createDirectory("share")
             }
             if(tmpShare != null) {
                 if (tracksTable.export(start, stop, newName, tmpShare, ::progressCallback)) {
