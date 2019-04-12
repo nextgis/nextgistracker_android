@@ -59,8 +59,6 @@ class MainActivity : AppCompatActivity() {
     private var mHasInternetPerm = false
     private var mHasGPSPerm = false
     private var mIsServiceRunning = false
-    private var mCurrentTrackName = ""
-    private var mCurrentTrackDate = Date()
     private lateinit var mAccount: Account
 
     private var mTracksAdapter: TrackAdapter? = null
@@ -76,14 +74,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleStatusChanged(intent: Intent?) {
         mIsServiceRunning = intent?.getBooleanExtra("is_running", false) ?: false
-        if(mIsServiceRunning) {
-            mCurrentTrackName = intent?.getStringExtra("name") ?: ""
-            mCurrentTrackDate = intent?.getSerializableExtra("start") as Date
-        }
-        else {
-            mCurrentTrackName = ""
-            mCurrentTrackDate = Date()
-        }
         updateServiceStatus()
     }
 
@@ -230,9 +220,8 @@ class MainActivity : AppCompatActivity() {
         else {
             fab.setImageResource(android.R.drawable.ic_media_play)
         }
-
-        tracksGroup.text = getString(R.string.tracks) + " (${mTracksAdapter?.itemCount})"
         mTracksAdapter?.refresh()
+        tracksGroup.text = getString(R.string.tracks) + " (${mTracksAdapter?.itemCount})"
     }
 
     override fun onDestroy() {
