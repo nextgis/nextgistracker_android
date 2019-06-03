@@ -50,8 +50,8 @@ class SettingsActivity : AppCompatActivity() {
         // Set values from properties
         val sharedPref = getDefaultSharedPreferences(this)
         divTrackByDay.isChecked = sharedPref.getBoolean("divTracksByDay", true)
-        timeInterval.intValue = sharedPref.getInt("timeInterval", 0)    // Most frequently
-        minDistance.intValue = sharedPref.getInt("minDistance", 0)      // Most frequently
+        timeInterval.intValue = sharedPref.getInt("timeInterval", 1)    // 1 sec
+        minDistance.intValue = sharedPref.getInt("minDistance", 10)     // 10 m
 
         sendInterval.intValue = sharedPref.getInt("sendInterval", 1200)
         sendPointMax.intValue = sharedPref.getInt(Constants.Settings.sendTracksPointsMaxKey, 100)

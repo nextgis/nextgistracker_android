@@ -23,6 +23,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.nextgis.tracker">
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <uses-feature
             android:name="android.hardware.location"
             android:required="true"/>

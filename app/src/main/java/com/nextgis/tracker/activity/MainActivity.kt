@@ -41,15 +41,13 @@ import com.nextgis.maplib.service.TrackerService
 import com.nextgis.tracker.R
 import com.nextgis.tracker.adapter.TrackAdapter
 import com.nextgis.tracker.startService
-import io.sentry.Sentry
-import io.sentry.android.AndroidSentryClientFactory
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import java.util.*
 
 private const val SENTRY_DSN = "https://7055a21dbcbd4b43ac0843d004aa4a92:130162eecf424376ad02f3947e1c1068@sentry.nextgis.com/15"
 private const val NGT_PERMISSIONS_REQUEST_INTERNET = 771
 private const val NGT_PERMISSIONS_REQUEST_GPS = 772
+private const val NGT_PERMISSIONS_REQUEST_WAKE_LOCK = 773
 const val AUTHORITY = "com.nextgis.tracker"
 const val ACCOUNT_TYPE = "com.nextgis.account2"
 const val ACCOUNT = "NextGIS Tracker"
@@ -119,9 +117,25 @@ class MainActivity : AppCompatActivity() {
             mHasGPSPerm = true
         }
 
-        Sentry.init(SENTRY_DSN, AndroidSentryClientFactory(applicationContext))
+        if(!checkPermission(this, Manifest.permission.WAKE_LOCK)) {
 
-        API.init(this@MainActivity)
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WAKE_LOCK)) {
+            }
+            else {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.WAKE_LOCK),
+                    NGT_PERMISSIONS_REQUEST_WAKE_LOCK
+                )
+            }
+        }
+
+        var sentryDSN = ""
+        if(mHasInternetPerm) {
+            sentryDSN = SENTRY_DSN
+        }
+        API.init(this@MainActivity, sentryDSN)
 
         if(mHasGPSPerm) {
             setupFab()
