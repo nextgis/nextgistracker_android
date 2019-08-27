@@ -44,7 +44,7 @@ import com.nextgis.tracker.startService
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
-private const val SENTRY_DSN = "https://7055a21dbcbd4b43ac0843d004aa4a92:130162eecf424376ad02f3947e1c1068@sentry.nextgis.com/15"
+private const val SENTRY_DSN = "https://7055a21dbcbd4b43ac0843d004aa4a92@sentry.nextgis.com/15"
 private const val NGT_PERMISSIONS_REQUEST_INTERNET = 771
 private const val NGT_PERMISSIONS_REQUEST_GPS = 772
 private const val NGT_PERMISSIONS_REQUEST_WAKE_LOCK = 773
