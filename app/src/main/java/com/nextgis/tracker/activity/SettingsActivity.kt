@@ -22,9 +22,13 @@
 package com.nextgis.tracker.activity
 
 import android.Manifest
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.Handler
+import android.os.IBinder
 import android.preference.PreferenceManager.getDefaultSharedPreferences
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -40,6 +44,20 @@ class SettingsActivity : AppCompatActivity() {
 
     private val mHandler = Handler()
     private var mRegenerateDialogIsShown = false
+
+    private var mTrackerService: TrackerService? = null
+    private var mIsBound = false
+    private val mServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            val binder = service as TrackerService.LocalBinder
+            mTrackerService = binder.getService()
+            mIsBound = true
+        }
+
+        override fun onServiceDisconnected(name: ComponentName) {
+            mIsBound = false
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -140,7 +158,9 @@ class SettingsActivity : AppCompatActivity() {
             commit()
         }
         // restart service if it is running
-        startService(this, TrackerService.Command.UPDATE)
+        if(mIsBound) {
+            mTrackerService?.update()
+        }
     }
 
 
@@ -156,6 +176,23 @@ class SettingsActivity : AppCompatActivity() {
         mRegenerateDialogIsShown = savedInstanceState?.getBoolean("showRegenerateDialog") ?: false
         if(mRegenerateDialogIsShown) {
             showRegenerateDialog()
+        }
+    }
+
+
+    override fun onStart() {
+        super.onStart()
+
+        // Get current status
+        val intent = Intent(this, TrackerService::class.java)
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        if(mIsBound) {
+            unbindService(mServiceConnection)
         }
     }
 }

@@ -27,22 +27,25 @@ import android.accounts.AccountManager
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.IBinder
 import android.preference.PreferenceManager
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nextgis.maplib.API
 import com.nextgis.maplib.Constants
+import com.nextgis.maplib.Location
 import com.nextgis.maplib.checkPermission
+import com.nextgis.maplib.service.TrackerDelegate
 import com.nextgis.maplib.service.TrackerService
 import com.nextgis.tracker.R
 import com.nextgis.tracker.adapter.TrackAdapter
 import com.nextgis.tracker.startService
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import java.util.*
 
 private const val SENTRY_DSN = "https://7055a21dbcbd4b43ac0843d004aa4a92@sentry.nextgis.com/15"
 private const val NGT_PERMISSIONS_REQUEST_INTERNET = 771
@@ -59,20 +62,32 @@ class MainActivity : AppCompatActivity() {
     private var mIsServiceRunning = false
     private lateinit var mAccount: Account
 
-    private var mTracksAdapter: TrackAdapter? = null
+    private var mTrackerService: TrackerService? = null
+    private var mIsBound = false
+    private val mServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            val binder = service as TrackerService.LocalBinder
+            mTrackerService = binder.getService()
+            mTrackerService?.addDelegate(mTrackerDelegate)
+            mIsBound = true
+            mTrackerService?.status()
+        }
 
-    private val mBroadCastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-
-            when (intent?.action) {
-                TrackerService.MessageType.STATUS_CHANGED.code -> handleStatusChanged(intent)
-            }
+        override fun onServiceDisconnected(name: ComponentName) {
+            mIsBound = false
         }
     }
+    private var mTracksAdapter: TrackAdapter? = null
 
-    private fun handleStatusChanged(intent: Intent?) {
-        mIsServiceRunning = intent?.getBooleanExtra("is_running", false) ?: false
-        updateServiceStatus()
+
+    private val mTrackerDelegate = object : TrackerDelegate {
+        override fun onLocationChanged(location: Location) {
+        }
+
+        override fun onStatusChanged(status: TrackerService.Status, trackName: String, trackStartTime: Date) {
+            mIsServiceRunning = status == TrackerService.Status.RUNNING
+            updateServiceStatus()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -141,9 +156,6 @@ class MainActivity : AppCompatActivity() {
             setupFab()
         }
 
-        val filter = IntentFilter()
-        filter.addAction(TrackerService.MessageType.STATUS_CHANGED.code)
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadCastReceiver, filter)
 
         val store = API.getStore()
         val tracksTable = store?.trackTable()
@@ -153,9 +165,6 @@ class MainActivity : AppCompatActivity() {
             tracksList.layoutManager = LinearLayoutManager(this)
             tracksList.adapter = mTracksAdapter
         }
-
-        // Get current status
-        startService(this, TrackerService.Command.STATUS)
 
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         val sendInterval = sharedPref.getInt("sendInterval", 1200).toLong()
@@ -187,6 +196,10 @@ class MainActivity : AppCompatActivity() {
             }
             else {
                 startService(this, TrackerService.Command.START)
+                if(!mIsBound) {
+                    val intent = Intent(this, TrackerService::class.java)
+                    bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+                }
             }
         }
     }
@@ -238,8 +251,20 @@ class MainActivity : AppCompatActivity() {
         tracksGroup.text = getString(R.string.tracks) + " (${mTracksAdapter?.itemCount})"
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadCastReceiver)
+    override fun onStart() {
+        super.onStart()
+
+        // Get current status
+        val intent = Intent(this, TrackerService::class.java)
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        if(mIsBound) {
+            mTrackerService?.removeDelegate(mTrackerDelegate)
+            unbindService(mServiceConnection)
+        }
     }
 }

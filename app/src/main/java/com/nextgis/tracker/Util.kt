@@ -23,6 +23,7 @@ package com.nextgis.tracker
 
 import android.content.Context
 import android.content.Intent
+import com.nextgis.maplib.service.TrackerDelegate
 import com.nextgis.maplib.service.TrackerService
 import com.nextgis.maplib.startTrackerService
 import com.nextgis.tracker.activity.MainActivity
