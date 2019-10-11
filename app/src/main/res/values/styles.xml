@@ -2,6 +2,7 @@
   ~ Project:  NextGIS Tracker
   ~ Purpose:  Software tracker for nextgis.com cloud
   ~ Author:   Dmitry Baryshnikov <dmitry.baryshnikov@nextgis.com>
+  ~ Author:   Stanislav Petriakov, becomeglory@gmail.com
   ~ *****************************************************************************
   ~ Copyright (c) 2018-2019 NextGIS <info@nextgis.com>
   ~
@@ -22,7 +23,15 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorSectionText</item>
+        <item name="colorPrimaryDark">@color/white</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppThemeWhite" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -30,7 +39,16 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.ActionBar"/>
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.ActionBar"/>
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light"/>
 
+    <style name="TextLabel">
+        <item name="android:textColor">#000</item>
+    </style>
+
+    <style name="TextBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/colorAccent</item>
+        <item name="android:textColorHint">#000</item>
+        <item name="hintTextColor">@color/colorAccent</item>
+    </style>
 </resources>

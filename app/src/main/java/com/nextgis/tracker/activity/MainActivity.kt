@@ -2,6 +2,7 @@
  * Project:  NextGIS Tracker
  * Purpose:  Software tracker for nextgis.com cloud
  * Author:   Dmitry Baryshnikov <dmitry.baryshnikov@nextgis.com>
+ * Author:   Stanislav Petriakov, becomeglory@gmail.com
  * ****************************************************************************
  * Copyright (c) 2018-2019 NextGIS <info@nextgis.com>
  *
@@ -22,16 +23,16 @@
 package com.nextgis.tracker.activity
 
 import android.Manifest
-import android.accounts.Account
-import android.accounts.AccountManager
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.IBinder
 import android.preference.PreferenceManager
 import android.view.Menu
 import android.view.MenuItem
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nextgis.maplib.API
@@ -42,6 +43,8 @@ import com.nextgis.maplib.service.TrackerDelegate
 import com.nextgis.maplib.service.TrackerService
 import com.nextgis.tracker.R
 import com.nextgis.tracker.adapter.TrackAdapter
+import com.nextgis.tracker.decrypt
+import com.nextgis.tracker.encrypt
 import com.nextgis.tracker.startService
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -51,16 +54,12 @@ private const val SENTRY_DSN = "https://7055a21dbcbd4b43ac0843d004aa4a92@sentry.
 private const val NGT_PERMISSIONS_REQUEST_INTERNET = 771
 private const val NGT_PERMISSIONS_REQUEST_GPS = 772
 private const val NGT_PERMISSIONS_REQUEST_WAKE_LOCK = 773
-const val AUTHORITY = "com.nextgis.tracker"
-const val ACCOUNT_TYPE = "com.nextgis.account2"
-const val ACCOUNT = "NextGIS Tracker"
 
-class MainActivity : AppCompatActivity() {
 
+class MainActivity : BaseActivity() {
     private var mHasInternetPerm = false
     private var mHasGPSPerm = false
     private var mIsServiceRunning = false
-    private lateinit var mAccount: Account
 
     private var mTrackerService: TrackerService? = null
     private var mIsBound = false
@@ -97,7 +96,6 @@ class MainActivity : AppCompatActivity() {
 
         // Check internet permission for web GIS interaction
         if(!checkPermission(this, Manifest.permission.INTERNET)) {
-
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.INTERNET)) {
                 // Show an explanation to the user *asynchronously* -- don't block
@@ -110,7 +108,6 @@ class MainActivity : AppCompatActivity() {
                     NGT_PERMISSIONS_REQUEST_INTERNET
                 )
             }
-
         } else {
             // Permission has already been granted
             mHasInternetPerm = true
@@ -133,8 +130,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if(!checkPermission(this, Manifest.permission.WAKE_LOCK)) {
-
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this,
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.WAKE_LOCK)) {
             }
             else {
@@ -150,41 +146,47 @@ class MainActivity : AppCompatActivity() {
         if(mHasInternetPerm) {
             sentryDSN = SENTRY_DSN
         }
-        API.init(this@MainActivity, sentryDSN)
 
-        if(mHasGPSPerm) {
-            setupFab()
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+        var key = sharedPref.getString("crypt_key", null)
+        var empty = false
+        if (key != null) {
+            key = decrypt(this, key)
+        } else {
+            empty = true
+            key = API.generatePrivateKey()
+            sharedPref.edit().putString("crypt_key", encrypt(this, key)).apply()
         }
 
+        API.init(this@MainActivity, key, sentryDSN)
+        if (empty) {
+            API.getCatalog()?.children()?.let {
+                for (child in it)
+                    if (child.type == 72) {
+                        child.children().map { connection -> connection.delete() }
+                    }
+            }
+        }
 
         val store = API.getStore()
         val tracksTable = store?.trackTable()
-        if(tracksTable != null) {
+        if (tracksTable != null) {
             tracksList.setHasFixedSize(true)
             mTracksAdapter = TrackAdapter(this, tracksTable)
             tracksList.layoutManager = LinearLayoutManager(this)
             tracksList.adapter = mTracksAdapter
         }
 
-        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         val sendInterval = sharedPref.getInt("sendInterval", 1200).toLong()
         val syncWithNGW = sharedPref.getBoolean(Constants.Settings.sendTracksToNGWKey, false)
-        if(syncWithNGW) {
-            mAccount = createSyncAccount()
-            ContentResolver.setSyncAutomatically(mAccount, AUTHORITY, true)
-            ContentResolver.addPeriodicSync(mAccount, AUTHORITY, Bundle.EMPTY, sendInterval)
+        if (syncWithNGW) {
+            enableSync(key, sendInterval)
+        } else {
+            disableSync()
         }
-    }
 
-    private fun createSyncAccount(): Account {
-        val accountManager = getSystemService(Context.ACCOUNT_SERVICE) as AccountManager
-        return Account(ACCOUNT, ACCOUNT_TYPE).also { newAccount ->
-            if (accountManager.addAccountExplicitly(newAccount, null, null)) {
-
-            }
-            else {
-
-            }
+        if(mHasGPSPerm) {
+            setupFab()
         }
     }
 
@@ -242,10 +244,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateServiceStatus() {
         if (mIsServiceRunning) {
-            fab.setImageResource(android.R.drawable.ic_media_pause)
+            fab.setImageResource(R.drawable.ic_pause)
         }
         else {
-            fab.setImageResource(android.R.drawable.ic_media_play)
+            fab.setImageResource(R.drawable.ic_play)
         }
         mTracksAdapter?.refresh()
         tracksGroup.text = getString(R.string.tracks) + " (${mTracksAdapter?.itemCount})"

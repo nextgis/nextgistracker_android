@@ -1,3 +1,25 @@
+<!--
+  ~ Project:  NextGIS Tracker
+  ~ Purpose:  Software tracker for nextgis.com cloud
+  ~ Author:   Dmitry Baryshnikov <dmitry.baryshnikov@nextgis.com>
+  ~ Author:   Stanislav Petriakov, becomeglory@gmail.com
+  ~ *****************************************************************************
+  ~ Copyright (c) 2018-2019 NextGIS <info@nextgis.com>
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
 <resources>
     <string name="app_name">NextGIS Tracker</string>
     <string name="action_settings">Settings</string>
@@ -29,4 +51,13 @@
     <string name="share_subj">Add tracker to NextGIS Web</string>
     <string name="share_tracker_id">Share tracker ID</string>
     <string name="send_track">Send track %s</string>
+    <string name="add_item">Add item</string>
+    <string name="create_folder">Create folder</string>
+    <string name="create_tracker_group">Create tracker group</string>
+    <string name="create_tracker">Add tracker</string>
+    <string name="add_instance">Add instance</string>
+    <string name="resource_name">Resource name</string>
+    <string name="parent_tracker">Parent should be a tracker group</string>
+    <string name="parent_tracker_not">Parent should not be a tracker group</string>
+    <string name="create_account_failed">Failed to create account</string>
 </resources>

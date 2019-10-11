@@ -2,6 +2,7 @@
  * Project:  NextGIS Tracker
  * Purpose:  Software tracker for nextgis.com cloud
  * Author:   Dmitry Baryshnikov <dmitry.baryshnikov@nextgis.com>
+ * Author:   Stanislav Petriakov, becomeglory@gmail.com
  * ****************************************************************************
  * Copyright (c) 2018-2019 NextGIS <info@nextgis.com>
  *
@@ -31,17 +32,16 @@ import android.os.Handler
 import android.os.IBinder
 import android.preference.PreferenceManager.getDefaultSharedPreferences
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
-import com.nextgis.maplib.Constants
-import com.nextgis.maplib.Track
-import com.nextgis.maplib.checkPermission
+import com.nextgis.maplib.*
+import com.nextgis.maplib.adapter.OnInstanceClickListener
+import com.nextgis.maplib.fragment.SelectInstanceDialog
 import com.nextgis.tracker.R
 import com.nextgis.maplib.service.TrackerService
-import com.nextgis.tracker.startService
+import com.nextgis.tracker.decrypt
 import kotlinx.android.synthetic.main.activity_settings.*
 
-class SettingsActivity : AppCompatActivity() {
 
+class SettingsActivity : BaseActivity(), OnInstanceClickListener {
     private val mHandler = Handler()
     private var mRegenerateDialogIsShown = false
 
@@ -116,14 +116,18 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent.createChooser(sendIntent, getString(R.string.share_tracker_id)))
         }
 
-        createInNgwButton.setOnClickListener {
-            // TODO: Dialog to create tracker in NGW
-        }
+        createInNgwButton.setOnClickListener { SelectInstanceDialog().show(this, this) }
 
         regenerateId.setOnClickListener {
             mRegenerateDialogIsShown = true
             showRegenerateDialog()
         }
+    }
+
+    override fun onInstanceClick(instance: Instance) {
+        val intent = Intent(this, ContentInstanceActivity::class.java)
+        intent.putExtra("instance", instance.url)
+        startActivity(intent)
     }
 
     private fun showRegenerateDialog() {
@@ -157,6 +161,15 @@ class SettingsActivity : AppCompatActivity() {
             putBoolean(Constants.Settings.sendTracksToNGWKey, sendToNgw.isChecked)
             commit()
         }
+
+        if (sendToNgw.isChecked) {
+            sharedPref.getString("crypt_key", null)?.let {
+                enableSync(decrypt(this, it), sendInterval.intValue.toLong())
+            }
+        } else {
+            disableSync()
+        }
+
         // restart service if it is running
         if(mIsBound) {
             mTrackerService?.update()

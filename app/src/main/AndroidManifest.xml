@@ -3,6 +3,7 @@
   ~ Project:  NextGIS Tracker
   ~ Purpose:  Software tracker for nextgis.com cloud
   ~ Author:   Dmitry Baryshnikov <dmitry.baryshnikov@nextgis.com>
+  ~ Author:   Stanislav Petriakov, becomeglory@gmail.com
   ~ *****************************************************************************
   ~ Copyright (c) 2018-2019 NextGIS <info@nextgis.com>
   ~
@@ -24,6 +25,9 @@
           package="com.nextgis.tracker">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
 
     <uses-feature
             android:name="android.hardware.location"
@@ -44,18 +48,28 @@
         <activity
                 android:name=".activity.MainActivity"
                 android:label="@string/app_name"
-                android:theme="@style/AppTheme">
+                android:theme="@style/AppThemeWhite">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
         <activity
                 android:name=".activity.SettingsActivity"
                 android:label="@string/action_settings"
                 android:parentActivityName=".activity.MainActivity"
-                android:theme="@style/AppTheme"/>
+                android:theme="@style/AppThemeWhite"/>
+
+        <activity android:name=".activity.ContentInstanceActivity"
+                android:parentActivityName=".activity.SettingsActivity"
+                android:theme="@style/AppThemeWhite" />
+
+        <activity android:name="com.nextgis.maplib.activity.AddInstanceActivity"
+                android:label="@string/add_instance"
+                android:parentActivityName=".activity.SettingsActivity"
+                android:theme="@style/AppTheme" />
 
         <service
                 android:name="com.nextgis.maplib.service.SyncService"
