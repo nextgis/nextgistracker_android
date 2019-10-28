@@ -43,8 +43,6 @@ import com.nextgis.maplib.service.TrackerDelegate
 import com.nextgis.maplib.service.TrackerService
 import com.nextgis.tracker.R
 import com.nextgis.tracker.adapter.TrackAdapter
-import com.nextgis.tracker.decrypt
-import com.nextgis.tracker.encrypt
 import com.nextgis.tracker.startService
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -148,25 +146,7 @@ class MainActivity : BaseActivity() {
         }
 
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
-        var key = sharedPref.getString("crypt_key", null)
-        var empty = false
-        if (key != null) {
-            key = decrypt(this, key)
-        } else {
-            empty = true
-            key = API.generatePrivateKey()
-            sharedPref.edit().putString("crypt_key", encrypt(this, key)).apply()
-        }
-
-        API.init(this@MainActivity, key, sentryDSN)
-        if (empty) {
-            API.getCatalog()?.children()?.let {
-                for (child in it)
-                    if (child.type == 72) {
-                        child.children().map { connection -> connection.delete() }
-                    }
-            }
-        }
+        API.init(this@MainActivity, sentryDSN)
 
         val store = API.getStore()
         val tracksTable = store?.trackTable()
@@ -180,7 +160,7 @@ class MainActivity : BaseActivity() {
         val sendInterval = sharedPref.getInt("sendInterval", 1200).toLong()
         val syncWithNGW = sharedPref.getBoolean(Constants.Settings.sendTracksToNGWKey, false)
         if (syncWithNGW) {
-            enableSync(key, sendInterval)
+            enableSync(sendInterval)
         } else {
             disableSync()
         }

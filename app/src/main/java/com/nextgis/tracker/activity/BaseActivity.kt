@@ -29,7 +29,6 @@ import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.nextgis.maplib.Constants
 import com.nextgis.tracker.R
 
 const val AUTHORITY = "com.nextgis.tracker"
@@ -45,8 +44,8 @@ abstract class BaseActivity : AppCompatActivity() {
         }
     }
 
-    protected fun enableSync(key: String, interval: Long) {
-        val account = getAccount() ?: createSyncAccount(key)
+    protected fun enableSync(interval: Long) {
+        val account = getAccount() ?: createSyncAccount()
         ContentResolver.setSyncAutomatically(account, AUTHORITY, true)
         ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle.EMPTY, interval)
     }
@@ -58,12 +57,10 @@ abstract class BaseActivity : AppCompatActivity() {
         return accounts.firstOrNull()
     }
 
-    private fun createSyncAccount(key: String): Account {
+    private fun createSyncAccount(): Account {
         val accountManager = getSystemService(Context.ACCOUNT_SERVICE) as AccountManager
         return Account(ACCOUNT, ACCOUNT_TYPE).also { newAccount ->
-            if (accountManager.addAccountExplicitly(newAccount, null, null)) {
-                accountManager.setUserData(newAccount, Constants.Settings.cryptKey, key)
-            } else {
+            if (!accountManager.addAccountExplicitly(newAccount, null, null)) {
                 Toast.makeText(this, R.string.create_account_failed, Toast.LENGTH_SHORT).show()
             }
         }

@@ -37,7 +37,6 @@ import com.nextgis.maplib.adapter.OnInstanceClickListener
 import com.nextgis.maplib.fragment.SelectInstanceDialog
 import com.nextgis.tracker.R
 import com.nextgis.maplib.service.TrackerService
-import com.nextgis.tracker.decrypt
 import kotlinx.android.synthetic.main.activity_settings.*
 
 
@@ -163,9 +162,7 @@ class SettingsActivity : BaseActivity(), OnInstanceClickListener {
         }
 
         if (sendToNgw.isChecked) {
-            sharedPref.getString("crypt_key", null)?.let {
-                enableSync(decrypt(this, it), sendInterval.intValue.toLong())
-            }
+            enableSync(sendInterval.intValue.toLong())
         } else {
             disableSync()
         }
