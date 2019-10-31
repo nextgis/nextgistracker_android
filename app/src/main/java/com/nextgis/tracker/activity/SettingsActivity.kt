@@ -23,6 +23,7 @@
 package com.nextgis.tracker.activity
 
 import android.Manifest
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -33,14 +34,14 @@ import android.os.IBinder
 import android.preference.PreferenceManager.getDefaultSharedPreferences
 import androidx.appcompat.app.AlertDialog
 import com.nextgis.maplib.*
-import com.nextgis.maplib.adapter.OnInstanceClickListener
-import com.nextgis.maplib.fragment.SelectInstanceDialog
+import com.nextgis.maplib.activity.AddInstanceActivity
 import com.nextgis.tracker.R
 import com.nextgis.maplib.service.TrackerService
 import kotlinx.android.synthetic.main.activity_settings.*
 
+const val CONTENT_ACTIVITY = 604
 
-class SettingsActivity : BaseActivity(), OnInstanceClickListener {
+class SettingsActivity : BaseActivity() {
     private val mHandler = Handler()
     private var mRegenerateDialogIsShown = false
 
@@ -115,7 +116,10 @@ class SettingsActivity : BaseActivity(), OnInstanceClickListener {
             startActivity(Intent.createChooser(sendIntent, getString(R.string.share_tracker_id)))
         }
 
-        createInNgwButton.setOnClickListener { SelectInstanceDialog().show(this, this) }
+        createInNgwButton.setOnClickListener {
+            val intent = Intent(this, AddInstanceActivity::class.java)
+            startActivityForResult(intent, AddInstanceActivity.ADD_INSTANCE_REQUEST)
+        }
 
         regenerateId.setOnClickListener {
             mRegenerateDialogIsShown = true
@@ -123,10 +127,34 @@ class SettingsActivity : BaseActivity(), OnInstanceClickListener {
         }
     }
 
-    override fun onInstanceClick(instance: Instance) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when (requestCode) {
+            AddInstanceActivity.ADD_INSTANCE_REQUEST -> {
+                if (resultCode == Activity.RESULT_OK)
+                    getInstanceURL()?.let { launchContentSelector(it) }
+            }
+            CONTENT_ACTIVITY -> clearConnections()
+            else -> super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
+    private fun clearConnections() {
+        API.getCatalog()?.children()?.let {
+            for (child in it)
+                if (child.type == 72) {
+                    child.children().map { connection -> connection.delete() }
+                }
+        }
+    }
+
+    private fun getInstanceURL(): String? {
+        return API.getCatalog()?.children()?.firstOrNull { it.type == 72 }?.children()?.firstOrNull()?.name
+    }
+
+    private fun launchContentSelector(instance: String) {
         val intent = Intent(this, ContentInstanceActivity::class.java)
-        intent.putExtra("instance", instance.url)
-        startActivity(intent)
+        intent.putExtra("instance", instance)
+        startActivityForResult(intent, CONTENT_ACTIVITY)
     }
 
     private fun showRegenerateDialog() {

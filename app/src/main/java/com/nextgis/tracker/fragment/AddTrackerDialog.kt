@@ -30,6 +30,7 @@ import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.nextgis.maplib.Object
 import com.nextgis.tracker.R
 import com.nextgis.tracker.activity.ContentInstanceActivity
 
@@ -41,48 +42,53 @@ class AddTrackerDialog : BottomSheetDialogFragment() {
         val dialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_add_tracker, null, false)
         dialog.setContentView(view)
-        val parent = activity?.isParentTracker ?: false
+
+        val canGroup = activity?.parent?.canCreate(Object.Type.CONTAINER_NGWGROUP) ?: false
+        val canTrackerGroup = activity?.parent?.canCreate(Object.Type.CONTAINER_NGWTRACKERGROUP) ?: false
+        val canTracker = activity?.parent?.canCreate(Object.Type.NGW_TRACKER) ?: false
 
         val folder = view.findViewById<TextView>(R.id.create_folder)
         folder.setOnClickListener {
-            if (parent) {
-                Toast.makeText(context, R.string.parent_tracker_not, Toast.LENGTH_LONG).show()
-            } else {
+            if (canGroup) {
                 dismiss()
                 activity?.createFolder()
+            } else {
+                Toast.makeText(context, R.string.parent_folder_not, Toast.LENGTH_LONG).show()
             }
         }
+        if (!canGroup)
+            disableButton(folder)
 
         val group = view.findViewById<TextView>(R.id.create_group)
         group.setOnClickListener {
-            if (parent) {
-                Toast.makeText(context, R.string.parent_tracker_not, Toast.LENGTH_LONG).show()
-            } else {
+            if (canTrackerGroup) {
                 dismiss()
                 activity?.createTrackerGroup()
+            } else {
+                Toast.makeText(context, R.string.parent_tracker_not, Toast.LENGTH_LONG).show()
             }
         }
+        if (!canTrackerGroup)
+            disableButton(group)
 
         val tracker = view.findViewById<TextView>(R.id.add_tracker)
-        if (!parent) {
-            tracker.setTextColor(Color.GRAY)
-            tracker.setBackgroundColor(Color.WHITE)
-        } else {
-            folder.setTextColor(Color.GRAY)
-            folder.setBackgroundColor(Color.WHITE)
-            group.setTextColor(Color.GRAY)
-            group.setBackgroundColor(Color.WHITE)
-        }
-
         tracker.setOnClickListener {
-            if (parent) {
+            if (canTracker) {
                 dismiss()
                 activity?.addTracker()
             } else {
                 Toast.makeText(context, R.string.parent_tracker, Toast.LENGTH_LONG).show()
             }
         }
+        if (!canTracker)
+            disableButton(tracker)
+
         return dialog
+    }
+
+    private fun disableButton(view: TextView) {
+        view.setTextColor(Color.GRAY)
+        view.setBackgroundColor(Color.WHITE)
     }
 
     fun show(activity: ContentInstanceActivity) {

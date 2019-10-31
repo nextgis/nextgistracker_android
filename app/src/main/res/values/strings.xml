@@ -58,6 +58,7 @@
     <string name="add_instance">Add instance</string>
     <string name="resource_name">Resource name</string>
     <string name="parent_tracker">Parent should be a tracker group</string>
-    <string name="parent_tracker_not">Parent should not be a tracker group</string>
+    <string name="parent_tracker_not">Cannot create a tracker group in this place</string>
     <string name="create_account_failed">Failed to create account</string>
+    <string name="parent_folder_not">Cannot create a folder in this place</string>
 </resources>

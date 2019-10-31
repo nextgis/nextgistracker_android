@@ -37,10 +37,9 @@ import kotlinx.android.synthetic.main.activity_instance_content.*
 
 
 class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
-    internal var isParentTracker: Boolean = false
     private var instanceName: String? = null
     private var connection: Object? = null
-    private val parent: Object?
+    internal val parent: Object?
         get() {
             (supportFragmentManager.findFragmentByTag("PickerFragment") as? FilePickerFragment)?.current?.let { return it }
             return connection
@@ -58,6 +57,7 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
                     if (child.type == 72) {
                         for (connection in child.children())
                             if (connection.name.startsWith(name)) {
+                                API.setProperty("http/timeout", "2500")
                                 this.connection = Object.forceChildToNGWResourceGroup(connection)
                                 val list = connection.children().toList()
                                 runOnUiThread { loader.visibility = View.GONE }
@@ -97,7 +97,6 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
     }
 
     private fun add() {
-        isParentTracker = parent?.type == 75
         AddTrackerDialog().show(this)
     }
 
