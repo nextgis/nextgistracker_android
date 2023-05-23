@@ -28,16 +28,16 @@ import android.os.AsyncTask
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.nextgis.maplib.*
-import kotlinx.android.synthetic.main.track_view.view.*
 import java.text.DateFormat
 import java.util.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
-import kotlinx.android.synthetic.main.progress.*
 import com.nextgis.tracker.R
+import com.nextgis.tracker.databinding.TrackViewBinding
 import java.io.File
 import java.text.SimpleDateFormat
 
@@ -55,23 +55,35 @@ class TrackAdapter(private val context: Context, private val tracksTable: Track)
 
     private var tracks: Array<TrackInfo> = tracksTable.getTracks()
 
-    class TrackViewHolder(var view: View) : RecyclerView.ViewHolder(view)
+    inner class TrackViewHolder(val binding: TrackViewBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackAdapter.TrackViewHolder {
         // create a new view
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.track_view, parent, false) as View
-        return TrackViewHolder(view)
+        val binding = TrackViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+
+        //val view = TrackViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        //val view = LayoutInflater.from(parent.context).inflate(R.layout.track_view, parent, false) as View
+        return TrackViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: TrackViewHolder, position: Int) {
         // Reverse sort
         val newPosition = tracks.size - position - 1
-        val context = holder.view.context
-        holder.view.trackName.text = tracks[newPosition].name
-        holder.view.trackDescription.text = createDescription(context, tracks[newPosition].start, tracks[newPosition].stop)
-        holder.view.shareImage.setOnClickListener {
-            shareGPX(tracks[newPosition].start, tracks[newPosition].stop, tracks[newPosition].name)
+        val context = holder.itemView.context
+        with (holder){
+            binding.trackName.text = tracks[newPosition].name
+            binding.trackDescription.text = createDescription(context, tracks[newPosition].start, tracks[newPosition].stop)
+            binding.shareImage.setOnClickListener {
+                shareGPX(tracks[newPosition].start, tracks[newPosition].stop, tracks[newPosition].name)
+            }
         }
+
+//
+//        holder.ite trackName.text = tracks[newPosition].name
+//        holder.view.trackDescription.text = createDescription(context, tracks[newPosition].start, tracks[newPosition].stop)
+//        holder.view.shareImage.setOnClickListener {
+//            shareGPX(tracks[newPosition].start, tracks[newPosition].stop, tracks[newPosition].name)
+//        }
     }
 
     override fun getItemCount() = tracks.size
@@ -148,7 +160,13 @@ class TrackAdapter(private val context: Context, private val tracksTable: Track)
 
         override fun onProgressUpdate(vararg values: Int?) {
             super.onProgressUpdate(*values)
-            progressDialog?.loader?.progress = values[0] ?: 0
+
+            val progressBar : ProgressBar? = progressDialog?.findViewById<ProgressBar>(R.id.loader)
+
+            progressBar.let {
+                progressBar?.progress = values[0] ?: 0
+            }
+            //progressDialog?.loader?.progress = values[0] ?: 0
         }
 
         override fun onPostExecute(result: String) {

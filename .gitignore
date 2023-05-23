@@ -68,3 +68,7 @@ fastlane/readme.md
 
 .DS_Store
 dokka-fatjar.jar
+
+# maplib
+maplib/
+

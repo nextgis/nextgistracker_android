@@ -61,4 +61,9 @@
     <string name="parent_tracker_not">Cannot create a tracker group in this place</string>
     <string name="create_account_failed">Failed to create account</string>
     <string name="parent_folder_not">Cannot create a folder in this place</string>
+
+    <string name="permissions">Permissions</string>
+    <string name="requested_permissions">Application needs some permissions to work properly. It includes writing to external storage (to save data on card),
+        access to location services and getting contacts (to create and manage web accounts).</string>
+
 </resources>

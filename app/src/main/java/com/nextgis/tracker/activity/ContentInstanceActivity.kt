@@ -31,14 +31,35 @@ import com.nextgis.maplib.*
 import com.nextgis.maplib.activity.PickerActivity
 import com.nextgis.maplib.fragment.FilePickerFragment
 import com.nextgis.tracker.R
+import com.nextgis.tracker.databinding.ActivityInstanceContentBinding
 import com.nextgis.tracker.fragment.AddTrackerDialog
 import com.nextgis.tracker.fragment.ResourceNameDialog
-import kotlinx.android.synthetic.main.activity_instance_content.*
 
 
 class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
     private var instanceName: String? = null
     private var connection: Object? = null
+
+    private lateinit var binding: ActivityInstanceContentBinding
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        binding = ActivityInstanceContentBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeButtonEnabled(true)
+        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { add() }
+
+        instanceName = intent?.extras?.getString("instance")
+        title = instanceName?.replace(".wconn", "")
+
+        val picker = FilePickerFragment()
+        supportFragmentManager.beginTransaction().add(R.id.container, picker, "PickerFragment")
+            .commit()
+    }
     internal val parent: Object?
         get() {
             (supportFragmentManager.findFragmentByTag("PickerFragment") as? FilePickerFragment)?.current?.let { return it }
@@ -60,7 +81,7 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
                                 API.setProperty("http/timeout", "2500")
                                 this.connection = Object.forceChildToNGWResourceGroup(connection)
                                 val list = connection.children().toList()
-                                runOnUiThread { loader.visibility = View.GONE }
+                                runOnUiThread { binding.loader.visibility = View.GONE }
                                 return list
                             }
                     }
@@ -68,22 +89,6 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
             return arrayListOf()
         }
         return children
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_instance_content)
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeButtonEnabled(true)
-        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { add() }
-
-        instanceName = intent?.extras?.getString("instance")
-        title = instanceName?.replace(".wconn", "")
-
-        val picker = FilePickerFragment()
-        supportFragmentManager.beginTransaction().add(R.id.container, picker, "PickerFragment")
-            .commit()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

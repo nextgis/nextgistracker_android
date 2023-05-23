@@ -35,12 +35,16 @@ import com.nextgis.tracker.databinding.DialogResourceNameBinding
 
 class ResourceNameDialog() : DialogFragment() {
     private lateinit var listener: (name: String) -> Unit
-    private lateinit var binding: DialogResourceNameBinding
+
+    private var _binding: DialogResourceNameBinding? = null
+    private val binding get() = _binding!!
+
     val resource = NonNullObservableField("")
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = Dialog(requireContext(), R.style.Base_ThemeOverlay_AppCompat_Dialog_Alert)
-        binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_resource_name, null, false)
+        val dialog = Dialog(requireContext(), com.google.android.material.R.style.Base_ThemeOverlay_AppCompat_Dialog_Alert)
+
+        _binding = DialogResourceNameBinding.inflate(LayoutInflater.from(context))
         dialog.setContentView(binding.root)
         binding.fragment = this
 
@@ -56,7 +60,7 @@ class ResourceNameDialog() : DialogFragment() {
 
     fun add() {
         if (resource.get().isBlank()) {
-            Toast.makeText(context, R.string.empty_field, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, com.nextgis.maplib.R.string.empty_field, Toast.LENGTH_SHORT).show()
             return
         }
         listener.invoke(resource.get())
@@ -69,5 +73,10 @@ class ResourceNameDialog() : DialogFragment() {
 
     companion object {
         const val TAG = "ResourceNameDialog"
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

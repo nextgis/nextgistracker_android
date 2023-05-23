@@ -37,11 +37,15 @@ import com.nextgis.maplib.*
 import com.nextgis.maplib.activity.AddInstanceActivity
 import com.nextgis.tracker.R
 import com.nextgis.maplib.service.TrackerService
-import kotlinx.android.synthetic.main.activity_settings.*
+import com.nextgis.tracker.databinding.ActivitySettingsBinding
+
 
 const val CONTENT_ACTIVITY = 604
 
 class SettingsActivity : BaseActivity() {
+
+    private lateinit var binding: ActivitySettingsBinding
+
     private val mHandler = Handler()
     private var mRegenerateDialogIsShown = false
 
@@ -61,34 +65,36 @@ class SettingsActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
-        setSupportActionBar(toolbar)
+
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         // Set values from properties
         val sharedPref = getDefaultSharedPreferences(this)
-        divTrackByDay.isChecked = sharedPref.getBoolean("divTracksByDay", true)
-        timeInterval.intValue = sharedPref.getInt("timeInterval", 1)    // 1 sec
-        minDistance.intValue = sharedPref.getInt("minDistance", 10)     // 10 m
+        binding.divTrackByDay.isChecked = sharedPref.getBoolean("divTracksByDay", true)
+        binding.timeInterval.intValue = sharedPref.getInt("timeInterval", 1)    // 1 sec
+        binding.minDistance.intValue = sharedPref.getInt("minDistance", 10)     // 10 m
 
-        sendInterval.intValue = sharedPref.getInt("sendInterval", 1200)
-        sendPointMax.intValue = sharedPref.getInt(Constants.Settings.sendTracksPointsMaxKey, 100)
+        binding.sendInterval.intValue = sharedPref.getInt("sendInterval", 1200)
+        binding.sendPointMax.intValue = sharedPref.getInt(Constants.Settings.sendTracksPointsMaxKey, 100)
 
-        device_Id.text = Track.getId()
+        binding.deviceId.text = Track.getId()
 
-        sendToNgw.isChecked = sharedPref.getBoolean(Constants.Settings.sendTracksToNGWKey, false)
-        if(sendToNgw.isChecked) {
-            sendToNgw.isEnabled = true
+        binding.sendToNgw.isChecked = sharedPref.getBoolean(Constants.Settings.sendTracksToNGWKey, false)
+        if(binding.sendToNgw.isChecked) {
+            binding.sendToNgw.isEnabled = true
         }
         else {
-            sendToNgw.isEnabled = false
+            binding.sendToNgw.isEnabled = false
             val checkTrackerInNGW = object : Runnable {
                 override fun run() {
                     // Check tracker is in web GIS
                     if (Track.isRegistered()) {
-                        sendToNgw.isEnabled = true
+                        binding.sendToNgw.isEnabled = true
                     } else {
-                        sendToNgw.isEnabled = false
+                        binding.sendToNgw.isEnabled = false
                         mHandler.postDelayed(this, 2000)
                     }
                 }
@@ -100,7 +106,7 @@ class SettingsActivity : BaseActivity() {
             }
         }
 
-        shareButton.setOnClickListener {
+        binding.shareButton.setOnClickListener {
             val sendIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(
@@ -116,12 +122,12 @@ class SettingsActivity : BaseActivity() {
             startActivity(Intent.createChooser(sendIntent, getString(R.string.share_tracker_id)))
         }
 
-        createInNgwButton.setOnClickListener {
+        binding.createInNgwButton.setOnClickListener {
             val intent = Intent(this, AddInstanceActivity::class.java)
             startActivityForResult(intent, AddInstanceActivity.ADD_INSTANCE_REQUEST)
         }
 
-        regenerateId.setOnClickListener {
+        binding.regenerateId.setOnClickListener {
             mRegenerateDialogIsShown = true
             showRegenerateDialog()
         }
@@ -170,8 +176,8 @@ class SettingsActivity : BaseActivity() {
     private fun finishGenerate(change: Boolean) {
         mRegenerateDialogIsShown = false
         if(change) {
-            device_Id.text = Track.getId(change)
-            sendToNgw.isChecked = false
+            binding.deviceId.text = Track.getId(change)
+            binding.sendToNgw.isChecked = false
         }
     }
 
@@ -180,17 +186,17 @@ class SettingsActivity : BaseActivity() {
         // save settings
         val sharedPref = getDefaultSharedPreferences(this)
         with (sharedPref.edit()) {
-            putBoolean("divTracksByDay", divTrackByDay.isChecked)
-            putInt("timeInterval", timeInterval.intValue)
-            putInt("minDistance", minDistance.intValue)
-            putInt("sendInterval", sendInterval.intValue)
-            putInt(Constants.Settings.sendTracksPointsMaxKey, sendPointMax.intValue)
-            putBoolean(Constants.Settings.sendTracksToNGWKey, sendToNgw.isChecked)
+            putBoolean("divTracksByDay", binding.divTrackByDay.isChecked)
+            putInt("timeInterval", binding.timeInterval.intValue)
+            putInt("minDistance", binding.minDistance.intValue)
+            putInt("sendInterval", binding.sendInterval.intValue)
+            putInt(Constants.Settings.sendTracksPointsMaxKey, binding.sendPointMax.intValue)
+            putBoolean(Constants.Settings.sendTracksToNGWKey, binding.sendToNgw.isChecked)
             commit()
         }
 
-        if (sendToNgw.isChecked) {
-            enableSync(sendInterval.intValue.toLong())
+        if (binding.sendToNgw.isChecked) {
+            enableSync(binding.sendInterval.intValue.toLong())
         } else {
             disableSync()
         }
@@ -209,7 +215,7 @@ class SettingsActivity : BaseActivity() {
     }
 
 
-    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         mRegenerateDialogIsShown = savedInstanceState?.getBoolean("showRegenerateDialog") ?: false
         if(mRegenerateDialogIsShown) {
