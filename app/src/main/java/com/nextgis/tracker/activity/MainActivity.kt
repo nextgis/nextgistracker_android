@@ -29,12 +29,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.preference.PreferenceManager
 import android.view.Menu
 import android.view.MenuItem
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -49,12 +51,18 @@ import com.nextgis.tracker.R
 import com.nextgis.tracker.adapter.TrackAdapter
 import com.nextgis.tracker.databinding.ActivityMainBinding
 import com.nextgis.tracker.startService
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
 import java.util.Date
 
 private const val SENTRY_DSN = "https://7055a21dbcbd4b43ac0843d004aa4a92@sentry.nextgis.com/15"
 private const val NGT_PERMISSIONS_REQUEST_INTERNET = 771
 private const val NGT_PERMISSIONS_REQUEST_GPS = 772
 private const val NGT_PERMISSIONS_REQUEST_WAKE_LOCK = 773
+
+const val PERMISSIONS_REQUEST = 1
+const val LOCATION_REQUEST = 2
 
 
 class MainActivity : BaseActivity() {
@@ -103,16 +111,12 @@ class MainActivity : BaseActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        //setContentView(R.layout.activity_main)
         setSupportActionBar(binding.toolbar)
 
         // Check internet permission for web GIS interaction
         if(!checkPermission(this, Manifest.permission.INTERNET)) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.INTERNET)) {
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
             } else {
                 ActivityCompat.requestPermissions(
                     this,
@@ -121,7 +125,6 @@ class MainActivity : BaseActivity() {
                 )
             }
         } else {
-            // Permission has already been granted
             mHasInternetPerm = true
             mHasGPSPerm = true
         }
@@ -142,28 +145,6 @@ class MainActivity : BaseActivity() {
                 permissions
             )
         }
-
-        // Check GPS permission
-//        if(!checkPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-//            ActivityCompat.requestPermissions(
-//                this,
-//                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-//                NGT_PERMISSIONS_REQUEST_GPS
-//            )
-//
-////            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-////                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-////            } else {
-////                ActivityCompat.requestPermissions(
-////                    this,
-////                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-////                    NGT_PERMISSIONS_REQUEST_GPS
-////                )
-////            }
-//        } else {
-//            // Permission has already been granted
-//            mHasGPSPerm = true
-//        }
 
         if(!checkPermission(this, Manifest.permission.WAKE_LOCK)) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
@@ -217,7 +198,7 @@ class MainActivity : BaseActivity() {
     }
     protected fun hasPermissions(): Boolean {
         var permissions = isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) &&
-                isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) &&
+                //isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) &&
                 isPermissionGranted(Manifest.permission.GET_ACCOUNTS)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) permissions = permissions &&
                 isPermissionGranted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -241,6 +222,7 @@ class MainActivity : BaseActivity() {
             val builder = AlertDialog.Builder(this).setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, null).create()
+
             builder.setCanceledOnTouchOutside(false)
             builder.show()
             builder.setOnDismissListener {
@@ -253,7 +235,7 @@ class MainActivity : BaseActivity() {
         } else ActivityCompat.requestPermissions(this,
             permissions,
             requestCode)
-        // permissions
+
     }
 
     private fun setupFab() {
@@ -263,14 +245,61 @@ class MainActivity : BaseActivity() {
                 startService(this, TrackerService.Command.STOP)
             }
             else {
-                startService(this, TrackerService.Command.START)
-                if(!mIsBound) {
-                    val intent = Intent(this, TrackerService::class.java)
-                    bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
-                }
+
+                TrackerService.showBackgroundDialog(this, object : TrackerService.BackgroundPermissionCallback {
+                    override fun beforeAndroid10(hasBackgroundPermission: Boolean) {
+                        if (!hasBackgroundPermission) {
+                            val permissions = arrayOf(
+                                Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION
+                            )
+                            requestPermissions(R.string.permissions,
+                                R.string.requested_permissions,
+                                LOCATION_REQUEST,
+                                permissions
+                            )
+                        } else {
+                            startService(baseContext, TrackerService.Command.START)
+                            if(!mIsBound) {
+                                val intent = Intent(baseContext, TrackerService::class.java)
+                                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+                            }                         }
+                    }
+
+                    @RequiresApi(api = Build.VERSION_CODES.Q)
+                    override fun onAndroid10(hasBackgroundPermission: Boolean) {
+                        if (!hasBackgroundPermission) {
+                            requestPermissions()
+                        } else {
+                            startService(baseContext, TrackerService.Command.START)
+                            if(!mIsBound) {
+                                val intent = Intent(baseContext, TrackerService::class.java)
+                                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+                            }                        }
+                    }
+
+                    @RequiresApi(api = Build.VERSION_CODES.Q)
+                    override fun afterAndroid10(hasBackgroundPermission: Boolean) {
+                        if (!hasBackgroundPermission) {
+                            requestPermissions()
+                        } else {
+                            startService(baseContext, TrackerService.Command.START)
+                            if(!mIsBound) {
+                                val intent = Intent(baseContext, TrackerService::class.java)
+                                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+                            }                        }
+                    }
+                })
+
             }
         }
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private fun requestPermissions() {
+        val permissions = arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        ActivityCompat.requestPermissions(this, permissions, LOCATION_REQUEST)
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -322,8 +351,6 @@ class MainActivity : BaseActivity() {
 
     override fun onStart() {
         super.onStart()
-
-        // Get current status
         val intent = Intent(this, TrackerService::class.java)
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
     }

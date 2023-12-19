@@ -58,9 +58,12 @@ abstract class BaseActivity : AppCompatActivity() {
     }
 
     private fun createSyncAccount(): Account {
+        val userData = Bundle()
+        userData.putString("url", "sdfdsfdsf")
+        userData.putString("login", "ddddd")
         val accountManager = getSystemService(Context.ACCOUNT_SERVICE) as AccountManager
         return Account(ACCOUNT, ACCOUNT_TYPE).also { newAccount ->
-            if (!accountManager.addAccountExplicitly(newAccount, null, null)) {
+            if (!accountManager.addAccountExplicitly(newAccount, "22", userData)) {
                 Toast.makeText(this, R.string.create_account_failed, Toast.LENGTH_SHORT).show()
             }
         }

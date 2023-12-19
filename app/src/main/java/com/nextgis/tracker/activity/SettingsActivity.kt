@@ -21,7 +21,6 @@
  */
 
 package com.nextgis.tracker.activity
-
 import android.Manifest
 import android.app.Activity
 import android.content.ComponentName
@@ -32,13 +31,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.preference.PreferenceManager.getDefaultSharedPreferences
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.nextgis.maplib.*
 import com.nextgis.maplib.activity.AddInstanceActivity
 import com.nextgis.tracker.R
 import com.nextgis.maplib.service.TrackerService
 import com.nextgis.tracker.databinding.ActivitySettingsBinding
-
 
 const val CONTENT_ACTIVITY = 604
 
@@ -55,7 +54,8 @@ class SettingsActivity : BaseActivity() {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as TrackerService.LocalBinder
             mTrackerService = binder.getService()
-            mIsBound = true
+            if (mTrackerService?.getStatus() ==TrackerService.Status.RUNNING)
+                mIsBound = true
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
@@ -95,7 +95,7 @@ class SettingsActivity : BaseActivity() {
                         binding.sendToNgw.isEnabled = true
                     } else {
                         binding.sendToNgw.isEnabled = false
-                        mHandler.postDelayed(this, 2000)
+                        mHandler.postDelayed(this, 5000) // check every 5 seconds
                     }
                 }
             }
@@ -202,8 +202,11 @@ class SettingsActivity : BaseActivity() {
         }
 
         // restart service if it is running
+//        if(mIsBound) {
+//            mTrackerService?.update()
+//        }
         if(mIsBound) {
-            mTrackerService?.update()
+            Toast.makeText(this, "to apply changes need to restart track recording", Toast.LENGTH_SHORT).show()
         }
     }
 

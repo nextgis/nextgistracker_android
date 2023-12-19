@@ -20,30 +20,29 @@
  */
 
 package com.nextgis.tracker.adapter
-
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.AsyncTask
+import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.Toast
-import androidx.recyclerview.widget.RecyclerView
-import com.nextgis.maplib.*
-import java.text.DateFormat
-import java.util.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
+import androidx.recyclerview.widget.RecyclerView
+import com.nextgis.maplib.*
 import com.nextgis.tracker.R
 import com.nextgis.tracker.databinding.TrackViewBinding
 import java.io.File
+import java.text.DateFormat
 import java.text.SimpleDateFormat
-
+import java.util.*
 
 private var continueExecution = true
 private var exportTask: TrackAdapter.ExportToGPXAsyncTask? = null
+
 @Suppress("UNUSED_PARAMETER")
 fun progressCallback(status: StatusCode, complete: Double, message: String) : Boolean {
     exportTask?.publishProgress(complete, message)
@@ -131,6 +130,27 @@ class TrackAdapter(private val context: Context, private val tracksTable: Track)
             progressDialog?.show()
         }
 
+//        fun deleteRecursive(fileOrDirectory: File?): Boolean {
+//            var isOK = true
+//            if (fileOrDirectory!!.isDirectory) {
+//                for (child in fileOrDirectory.listFiles()) {
+//                    isOK = deleteRecursive(child) && isOK
+//                }
+//            }
+//            return fileOrDirectory.delete() && isOK
+//        }
+
+        @Synchronized
+        @Throws(RuntimeException::class)
+        fun createDir(dir: File) {
+            if (dir.exists()) {
+                return
+            }
+            if (!dir.mkdirs()) {
+                throw RuntimeException("Can not create dir $dir")
+            }
+        }
+
         override fun doInBackground(vararg p: Void): String {
 
             var result = ""
@@ -147,7 +167,8 @@ class TrackAdapter(private val context: Context, private val tracksTable: Track)
                 if (tracksTable.export(start, stop, newName, tmpShare, ::progressCallback)) {
                     val properties = tmpShare.getProperties()
                     val systemPath = properties["system_path"]
-                    result = "$systemPath/$newName.gpx"
+                    //result = "$systemPath/$newName.gpx"
+                    result = "$systemPath/nga_tracks_pt.gpx"
                 }
             }
 
@@ -181,10 +202,11 @@ class TrackAdapter(private val context: Context, private val tracksTable: Track)
                 val fileUri: Uri? = try {
                     FileProvider.getUriForFile(
                         context,
-                        "com.nextgis.tracker.fileprovider",
+                        "${context.packageName}.provider",
                         gpxFile)
                 } catch (e: IllegalArgumentException) {
-                    printError("The selected file can't be shared: $result")
+                    Log.e("tracker","The selected file can't be shared: $result")
+                    Toast.makeText(context, "Error on export track", Toast.LENGTH_SHORT).show()
                     null
                 }
 
@@ -193,7 +215,8 @@ class TrackAdapter(private val context: Context, private val tracksTable: Track)
                         action = Intent.ACTION_SEND
                         putExtra(Intent.EXTRA_STREAM, fileUri)
                         putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.send_track).format(name))
-                        type = "application/gpx+xml"
+                        type = "text/plain"
+                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                     }
                     context.startActivity(Intent.createChooser(sendIntent, context.getString(R.string.share_gpx)))
                 }
