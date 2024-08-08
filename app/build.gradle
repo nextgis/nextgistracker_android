@@ -34,6 +34,11 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        Properties properties = new Properties()
+        properties.load(project.rootProject.file('local.properties').newDataInputStream())
+        buildConfigField "String", "CLIENT_ID_OLD", "\"${properties.getProperty('oauth.id.old')}\""
+        buildConfigField "String", "CLIENT_ID", "\"${properties.getProperty('oauth.id')}\""
+        buildConfigField "String", "CLIENT_SECRET", "\"${properties.getProperty('oauth.secret')}\""
     }
     signingConfigs {
         debug {

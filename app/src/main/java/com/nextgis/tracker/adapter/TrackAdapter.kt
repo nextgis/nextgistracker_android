@@ -26,6 +26,7 @@ import android.net.Uri
 import android.os.AsyncTask
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.Toast
@@ -49,27 +50,62 @@ fun progressCallback(status: StatusCode, complete: Double, message: String) : Bo
     return continueExecution
 }
 
-class TrackAdapter(private val context: Context, private val tracksTable: Track) :
+class TrackAdapter(private val context: Context,
+                   private val tracksTable: Track,
+                   private val onItemClick: (TrackInfo, View) -> Unit
+) :
     RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
 
+        fun setOnProgress(isOnProgress:Boolean, trackName : String, trackStartTime : Date){
+            topInProgress = isOnProgress
+            progressTrackName = trackName
+            progressTrackStartTime = trackStartTime
+        }
+
+
+    private var topInProgress = false
+    private var  progressTrackName = ""
+    private var progressTrackStartTime = Date()
     private var tracks: Array<TrackInfo> = tracksTable.getTracks()
 
-    inner class TrackViewHolder(val binding: TrackViewBinding) : RecyclerView.ViewHolder(binding.root)
+
+    inner class TrackViewHolder(val binding: TrackViewBinding,
+                                onItemClicked: (Int) -> Unit
+    ) : RecyclerView.ViewHolder(binding.root){
+        init {
+            binding.clickArea.setOnClickListener{// click all area exept  share image
+                onItemClicked(adapterPosition)
+            }
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackAdapter.TrackViewHolder {
         // create a new view
         val binding = TrackViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-
         //val view = TrackViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         //val view = LayoutInflater.from(parent.context).inflate(R.layout.track_view, parent, false) as View
-        return TrackViewHolder(binding)
+        return TrackViewHolder(binding) {
+            val newPosition = tracks.size - it - 1
+            onItemClick(tracks[newPosition], binding.clickArea)
+        }
     }
 
     override fun onBindViewHolder(holder: TrackViewHolder, position: Int) {
         // Reverse sort
         val newPosition = tracks.size - position - 1
         val context = holder.itemView.context
+
+        val formatter = DateFormat.getTimeInstance()
+        formatter.timeZone = TimeZone.getDefault()
+
         with (holder){
+
+            if (topInProgress && position==0
+                && progressTrackName.equals(tracks[newPosition].name) &&
+                progressTrackStartTime.time <= tracks[newPosition].start.time)
+                binding.trackImage.setImageResource(com.nextgis.maplib.R.drawable.ic_track_active)
+            else
+                binding.trackImage.setImageResource(R.drawable.ic_track)
             binding.trackName.text = tracks[newPosition].name
             binding.trackDescription.text = createDescription(context, tracks[newPosition].start, tracks[newPosition].stop)
             binding.shareImage.setOnClickListener {
@@ -88,7 +124,10 @@ class TrackAdapter(private val context: Context, private val tracksTable: Track)
     override fun getItemCount() = tracks.size
 
     fun refresh() {
+        Log.e("TTRRAACCKK", "-----------------")
+        Log.e("TTRRAACCKK", "refresh - old size: " +   tracks.size)
         tracks = tracksTable.getTracks()
+        Log.e("TTRRAACCKK", "refresh - new size: " +   tracks.size)
         printMessage("Tracks count = ${tracks.size}")
         notifyDataSetChanged()
     }

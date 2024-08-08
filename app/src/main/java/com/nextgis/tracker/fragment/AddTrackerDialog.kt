@@ -45,8 +45,7 @@ class AddTrackerDialog : BottomSheetDialogFragment() {
 
         val canGroup = activity?.parent?.canCreate(Object.Type.CONTAINER_NGWGROUP) ?: false
         val canTrackerGroup = activity?.parent?.canCreate(Object.Type.CONTAINER_NGWTRACKERGROUP) ?: false
-        val canTrackerDebug = activity?.parent?.canCreate(Object.Type.NGW_TRACKER) ?: false
-        val canTracker = true
+        val canTracker = activity?.parent?.canCreate(Object.Type.NGW_TRACKER) ?: false
 
         val folder = view.findViewById<TextView>(R.id.create_folder)
         folder.setOnClickListener {

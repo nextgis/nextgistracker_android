@@ -137,7 +137,9 @@ class SettingsActivity : BaseActivity() {
         when (requestCode) {
             AddInstanceActivity.ADD_INSTANCE_REQUEST -> {
                 if (resultCode == Activity.RESULT_OK)
-                    getInstanceURL()?.let { launchContentSelector(it) }
+                    getInstanceURL()?.let {
+                        launchContentSelector(it)
+                    }
             }
             CONTENT_ACTIVITY -> clearConnections()
             else -> super.onActivityResult(requestCode, resultCode, data)
@@ -210,13 +212,11 @@ class SettingsActivity : BaseActivity() {
         }
     }
 
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
         outState.putBoolean("showRegenerateDialog", mRegenerateDialogIsShown)
     }
-
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
@@ -225,7 +225,6 @@ class SettingsActivity : BaseActivity() {
             showRegenerateDialog()
         }
     }
-
 
     override fun onStart() {
         super.onStart()

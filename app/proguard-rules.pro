@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-dontwarn java.lang.invoke.StringConcatFactory
+-dontwarn javax.naming.Context
+-dontwarn javax.naming.InitialContext
+-dontwarn javax.naming.NamingException
+-dontwarn javax.naming.NoInitialContextException
+-dontwarn javax.servlet.ServletContainerInitializer
+-dontwarn javax.servlet.ServletRequestListener
+-dontwarn javax.servlet.http.Cookie
+-dontwarn javax.servlet.http.HttpServletRequest

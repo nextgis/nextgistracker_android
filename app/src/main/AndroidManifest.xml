@@ -29,9 +29,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_SYNC_STATS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
 
 
     <uses-feature
@@ -66,7 +71,7 @@
                 android:name=".activity.SettingsActivity"
                 android:label="@string/action_settings"
                 android:parentActivityName=".activity.MainActivity"
-                android:theme="@style/AppThemeWhite"/>
+                android:theme="@style/AppTheme"/>
 
         <activity android:name=".activity.ContentInstanceActivity"
                 android:parentActivityName=".activity.SettingsActivity"

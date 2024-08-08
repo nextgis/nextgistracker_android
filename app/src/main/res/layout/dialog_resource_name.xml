@@ -91,6 +91,20 @@
                         android:onClick="@{()->fragment.add()}"
                         android:text="@string/ok" />
             </LinearLayout>
+
         </LinearLayout>
+        <RelativeLayout
+                android:id="@+id/progressarea"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#55555555"
+                android:visibility="@{fragment.progress? 0:8}"
+                >
+            <ProgressBar
+                    style="@style/Widget.AppCompat.ProgressBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"/>
+        </RelativeLayout>
     </com.google.android.material.card.MaterialCardView>
 </layout>

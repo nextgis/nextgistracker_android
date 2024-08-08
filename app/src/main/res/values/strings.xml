@@ -26,9 +26,9 @@
     <string name="tracks">Tracks</string>
     <string name="divide_tracks_by_days">Divide tracks by days</string>
     <string name="send_to_web_gis">Send to Web GIS</string>
-    <string name="coord_pick_interval">Coordinate pick time interval, sec</string>
+    <string name="coord_pick_interval">Coordinate pick time interval</string>
     <string name="most_frequently">Most frequently</string>
-    <string name="minimum_distance">Minimum distance to pick coordinates, m</string>
+    <string name="minimum_distance">Minimum distance to pick coordinates</string>
     <string name="send_to_ngw_explanation">You need to add your device ID to your web GIS in order to send tracks to it.
         After adding device ID to web GIS the switch will unlock.
     </string>
@@ -66,4 +66,5 @@
     <string name="requested_permissions">Application needs some permissions to work properly. It includes writing to external storage (to save data on card),
         access to location services and getting contacts (to create and manage web accounts).</string>
 
+    <string name="delete">Delete</string>
 </resources>

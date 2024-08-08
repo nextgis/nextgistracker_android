@@ -29,8 +29,10 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import com.nextgis.maplib.util.NonNullObservableField
+import com.nextgis.maplib.util.runAsync
 import com.nextgis.tracker.R
 import com.nextgis.tracker.databinding.DialogResourceNameBinding
+import kotlin.concurrent.thread
 
 
 class ResourceNameDialog() : DialogFragment() {
@@ -38,6 +40,8 @@ class ResourceNameDialog() : DialogFragment() {
 
     private var _binding: DialogResourceNameBinding? = null
     private val binding get() = _binding!!
+
+    val progress =  NonNullObservableField(false)
 
     val resource = NonNullObservableField("")
 
@@ -63,8 +67,17 @@ class ResourceNameDialog() : DialogFragment() {
             Toast.makeText(context, com.nextgis.maplib.R.string.empty_field, Toast.LENGTH_SHORT).show()
             return
         }
-        listener.invoke(resource.get())
-        dismiss()
+        progress.set(true)
+        runAsync {
+            Thread.sleep(3_000)
+            listener.invoke(resource.get())
+            progress.set(false)
+            activity?.runOnUiThread{
+                dismiss()
+            }
+
+        }
+
     }
 
     fun cancel() {

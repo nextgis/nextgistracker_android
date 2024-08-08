@@ -32,7 +32,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.nextgis.tracker.R
 
 const val AUTHORITY = "com.nextgis.tracker"
-const val ACCOUNT_TYPE = "com.nextgis.account2"
+const val ACCOUNT_TYPE = "com.nextgis.account3"
 const val ACCOUNT = "NextGIS Tracker"
 
 

@@ -57,6 +57,7 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
         title = instanceName?.replace(".wconn", "")
 
         val picker = FilePickerFragment()
+        picker.setTracker() // set tracker use
         supportFragmentManager.beginTransaction().add(R.id.container, picker, "PickerFragment")
             .commit()
     }
@@ -71,6 +72,11 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
     }
 
     override fun root(): List<Object> {
+        runOnUiThread{
+            binding.loader.setOnClickListener {  }
+            binding.loader.visibility = View.VISIBLE
+        }
+        //Thread.sleep(4_000)
         val children = listOf<Object>()
         API.getCatalog()?.children()?.let {
             instanceName?.let { name ->
@@ -81,12 +87,20 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
                                 API.setProperty("http/timeout", "2500")
                                 this.connection = Object.forceChildToNGWResourceGroup(connection)
                                 val list = connection.children().toList()
-                                runOnUiThread { binding.loader.visibility = View.GONE }
+                                runOnUiThread {
+                                    binding.loader.visibility = View.GONE
+                                }
                                 return list
                             }
                     }
             }
+            runOnUiThread {
+                binding.loader.visibility = View.GONE
+            }
             return arrayListOf()
+        }
+        runOnUiThread {
+            binding.loader.visibility = View.GONE
         }
         return children
     }
@@ -94,8 +108,14 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                finish()
-                true
+                // check fragment back action
+                val filepickerFragment = supportFragmentManager.findFragmentByTag("PickerFragment") as FilePickerFragment
+                if (filepickerFragment == null || !filepickerFragment.processback(true)){
+                    finish()
+                    true
+                } else {
+                    return true
+                }
             }
             else -> super.onOptionsItemSelected(item)
         }
@@ -122,16 +142,22 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
     }
 
     fun addTracker() {
+
         parent?.let {
             ResourceNameDialog().show(this) { name ->
-                refreshOrError(NGWTrackerGroup(it).createTracker(name, tracker_id = Track.getId(false)))
+                refreshOrError(NGWTrackerGroup(it)
+                    .createTracker(name, tracker_id = Track.getId(false))
+                )
             }
         }
     }
 
     private fun refreshOrError(result: Object?) {
         (supportFragmentManager.findFragmentByTag("PickerFragment") as? FilePickerFragment)?.refresh()
-        if (result == null)
-            Toast.makeText(this, API.lastError(), Toast.LENGTH_SHORT).show()
+        if (result == null) {
+            runOnUiThread {
+                Toast.makeText(this, API.lastError(), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }
