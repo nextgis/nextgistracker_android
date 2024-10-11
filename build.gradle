@@ -27,7 +27,7 @@ plugins {
     id 'org.jetbrains.kotlin.android' version '1.8.20' apply false
     id 'org.jetbrains.dokka' version '1.8.10'
 
-    id "io.sentry.android.gradle" version "3.6.0" // 3.6.0
+    id "io.sentry.android.gradle" version "4.11.0" // 3.6.0
 }
 
 

@@ -41,6 +41,7 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
     private var connection: Object? = null
 
     private lateinit var binding: ActivityInstanceContentBinding
+    private var trackerCreated = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -142,11 +143,10 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
     }
 
     fun addTracker() {
-
         parent?.let {
             ResourceNameDialog().show(this) { name ->
-                refreshOrError(NGWTrackerGroup(it)
-                    .createTracker(name, tracker_id = Track.getId(false))
+                refreshOrError(
+                    NGWTrackerGroup(it).createTracker(name, tracker_id = Track.getId(false))
                 )
             }
         }

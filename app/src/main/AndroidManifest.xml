@@ -22,7 +22,8 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.nextgis.tracker">
+        xmlns:tools="http://schemas.android.com/tools"
+        package="com.nextgis.tracker">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -119,6 +120,46 @@
                     android:name="android.accounts.AccountAuthenticator"
                     android:resource="@xml/authenticator" />
         </service>
+
+        <receiver
+                android:name=".service.BootLoader"
+                android:enabled="true"
+                android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <meta-data
+                android:name="io.sentry.dsn"
+                android:value="@string/TRACKER_SENTRY_DSN" /> <!-- enable automatic breadcrumbs for user interactions (clicks, swipes, scrolls) -->
+        <meta-data
+                android:name="io.sentry.traces.user-interaction.enable"
+                android:value="true" /> <!-- enable screenshot for crashes -->
+        <meta-data
+                android:name="io.sentry.attach-screenshot"
+                android:value="true" /> <!-- enable view hierarchy for crashes -->
+        <meta-data
+                android:name="io.sentry.attach-view-hierarchy"
+                android:value="true" /> <!-- enable the performance API by setting a sample-rate, adjust in production env -->
+        <meta-data
+                android:name="io.sentry.traces.sample-rate"
+                android:value="1.0" /> <!-- enable profiling when starting transactions, adjust in production env -->
+        <meta-data
+                android:name="io.sentry.traces.profiling.sample-rate"
+                android:value="1.0" />
+
+        <provider
+                android:name="io.sentry.android.core.SentryInitProvider"
+                android:authorities="${applicationId}.SentryInitProvider"
+                tools:node="remove"
+                />
+
+        <provider
+                android:name="io.sentry.android.core.SentryPerformanceProvider"
+                android:authorities="${applicationId}.SentryPerformanceProvider"
+                tools:node="remove"
+                />
 
     </application>
 

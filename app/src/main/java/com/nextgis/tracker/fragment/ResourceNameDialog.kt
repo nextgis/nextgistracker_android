@@ -69,7 +69,7 @@ class ResourceNameDialog() : DialogFragment() {
         }
         progress.set(true)
         runAsync {
-            Thread.sleep(3_000)
+//            Thread.sleep(3_000)
             listener.invoke(resource.get())
             progress.set(false)
             activity?.runOnUiThread{

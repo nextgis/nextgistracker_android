@@ -20,7 +20,8 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:combobox="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
@@ -49,10 +50,105 @@
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
+            <TextView
+                    android:id="@+id/sync_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginRight="16dp"
+                    android:text="@string/sync"
+                    android:textColor="@color/colorSectionText"
+                    android:textStyle="bold" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/sendToNgw"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    android:enabled="true"
+                    android:text="@string/send_to_web_gis"
+                    android:textSize="16sp"
+                    />
+
+            <TextView
+                    android:id="@+id/sync_ngw_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/send_to_ngw_explanation"
+                    android:textStyle="italic"
+                    />
+
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:layout_weight="6"
+                        android:orientation="vertical"
+                        android:paddingLeft="16dp"
+                        >
+
+                    <TextView
+                            android:id="@+id/deviceid_tv"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="@string/device_id"
+
+                            />
+
+                    <TextView
+                            android:id="@+id/device_Id"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="@string/three_dots"
+                            android:textColor="@android:color/black"
+                            android:textSize="16sp" />
+                </LinearLayout>
+
+                <!--                <ImageView-->
+                <!--                        android:id="@+id/regenerateId"-->
+                <!--                        android:layout_width="wrap_content"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:layout_gravity="center"-->
+                <!--                        android:layout_marginTop="8dp"-->
+                <!--                        android:layout_weight="1"-->
+                <!--                        android:contentDescription="@string/refresh_device_id"-->
+                <!--                        android:minWidth="32dp"-->
+                <!--                        android:minHeight="32dp"-->
+                <!--                        combobox:srcCompat="@drawable/ic_refresh" />-->
+
+                <ImageView
+                        android:id="@+id/shareId"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_weight="1"
+                        android:contentDescription="@string/share_tracker_id"
+                        android:minWidth="32dp"
+                        android:minHeight="32dp"
+                        android:src="@drawable/ic_action_content_copy"
+                        />
+
+            </LinearLayout>
+
 
             <TextView
                     android:id="@+id/tracks_tv"
@@ -64,8 +160,7 @@
                     android:text="@string/tracks"
                     android:textColor="@color/colorSectionText"
                     android:textStyle="bold" />
-
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/divTrackByDay"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -93,112 +188,52 @@
                     combobox:entries="@array/tracker_min_dist_update"
                     combobox:values="@array/tracker_min_dist_update_val"></com.nextgis.maplib.control.Combobox>
 
-            <TextView
-                    android:id="@+id/sync_tv"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginRight="16dp"
-                    android:text="@string/sync_with_ngw"
-                    android:textColor="@color/colorSectionText"
-                    android:textStyle="bold" />
+<!--            <TextView-->
+<!--                    android:id="@+id/sync_tv"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginLeft="16dp"-->
+<!--                    android:layout_marginTop="16dp"-->
+<!--                    android:layout_marginRight="16dp"-->
+<!--                    android:text="@string/sync_with_ngw"-->
+<!--                    android:textColor="@color/colorSectionText"-->
+<!--                    android:textStyle="bold" />-->
 
-            <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
+<!--            <LinearLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_marginStart="16dp"-->
+<!--                    android:layout_marginTop="16dp"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:orientation="horizontal">-->
 
-                <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="8dp"
-                        android:layout_weight="6"
-                        android:orientation="vertical">
+<!--                <Button-->
+<!--                        android:id="@+id/shareButton"-->
+<!--                        style="@style/Widget.AppCompat.Button.Borderless"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_weight="1"-->
+<!--                        android:text="@string/share_device_id"-->
+<!--                        android:textColor="@color/colorSectionText" />-->
 
-                    <TextView
-                            android:id="@+id/deviceid_tv"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:text="@string/device_id"
-                            android:textAlignment="center" />
+<!--                <Button-->
+<!--                        android:id="@+id/createInNgwButton"-->
+<!--                        style="@style/Widget.AppCompat.Button.Borderless"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_weight="1"-->
+<!--                        android:text="@string/create_in_ngw"-->
+<!--                        android:textColor="@color/colorSectionText" />-->
+<!--            </LinearLayout>-->
 
-                    <TextView
-                            android:id="@+id/device_Id"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:text="@string/three_dots"
-                            android:textAlignment="center"
-                            android:textColor="@android:color/black"
-                            android:textSize="16sp" />
-                </LinearLayout>
 
-                <ImageView
-                        android:id="@+id/regenerateId"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="8dp"
-                        android:layout_weight="1"
-                        android:contentDescription="@string/refresh_device_id"
-                        android:minWidth="32dp"
-                        android:minHeight="32dp"
-                        combobox:srcCompat="@drawable/ic_refresh" />
-            </LinearLayout>
-
-            <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginEnd="16dp"
-                    android:orientation="horizontal">
-
-                <Button
-                        android:id="@+id/shareButton"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/share_device_id"
-                        android:textColor="@color/colorSectionText" />
-
-                <Button
-                        android:id="@+id/createInNgwButton"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/create_in_ngw"
-                        android:textColor="@color/colorSectionText" />
-            </LinearLayout>
-
-            <Switch
-                    android:id="@+id/sendToNgw"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="16dp"
-                    android:enabled="false"
-                    android:text="@string/send_to_web_gis"
-                    android:textSize="16sp" />
-
-            <TextView
-                    android:id="@+id/sync_ngw_tv"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:layout_marginBottom="16dp"
-                    android:text="@string/send_to_ngw_explanation"
-                    android:textStyle="italic" />
 
             <com.nextgis.maplib.control.Combobox
                     android:id="@+id/sendInterval"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     combobox:alt_text="@string/sync_interval_sec"
-                    combobox:default_value="1200"
+                    combobox:default_value="10"
                     combobox:entries="@array/sync_time"
                     combobox:values="@array/sync_time_val" />
 
@@ -212,4 +247,23 @@
                     combobox:values="@array/max_pt_count_val" />
         </LinearLayout>
     </ScrollView>
+
+
+    <RelativeLayout
+            android:id="@+id/progressloaderarea"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#44000000"
+            android:visibility="gone"
+
+            >
+        <ProgressBar
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+
+                />
+    </RelativeLayout>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

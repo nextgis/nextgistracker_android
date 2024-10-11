@@ -60,6 +60,7 @@ import com.nextgis.maplib.checkPermission
 import com.nextgis.maplib.fragment.LocationInfoFragment
 import com.nextgis.maplib.service.TrackerDelegate
 import com.nextgis.maplib.service.TrackerService
+import com.nextgis.tracker.BuildConfig
 import com.nextgis.tracker.R
 import com.nextgis.tracker.adapter.TrackAdapter
 import com.nextgis.tracker.databinding.ActivityMainBinding
@@ -68,7 +69,7 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.TimeZone
 
-private const val SENTRY_DSN = "https://7055a21dbcbd4b43ac0843d004aa4a92@sentry.nextgis.com/15"
+public const val SENTRY_DSN = BuildConfig.TRACKER_SENTRY_DSN
 private const val NGT_PERMISSIONS_REQUEST_INTERNET = 771
 private const val NGT_PERMISSIONS_REQUEST_GPS = 772
 private const val NGT_PERMISSIONS_REQUEST_WAKE_LOCK = 773
@@ -258,9 +259,9 @@ class MainActivity : BaseActivity(),
         }
 
         var sentryDSN = ""
-        if(mHasInternetPerm) {
+        //if(mHasInternetPerm) {
             sentryDSN = SENTRY_DSN
-        }
+        //}
 
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         API.init(this@MainActivity, sentryDSN)
@@ -272,11 +273,11 @@ class MainActivity : BaseActivity(),
             mTracksAdapter = TrackAdapter(this, tracksTable) {
                 trackInfo , view ->
                 run {
-                    this.trackInfo = trackInfo
-                    val popup = PopupMenu(this, view)
-                    popup.menuInflater.inflate(R.menu.track_actions, popup.menu)
-                    popup.setOnMenuItemClickListener(this)
-                    popup.show()
+//                    this.trackInfo = trackInfo
+//                    val popup = PopupMenu(this, view)
+//                    popup.menuInflater.inflate(R.menu.track_actions, popup.menu)
+//                    popup.setOnMenuItemClickListener(this)
+//                    popup.show()
                 }
             }
             binding.contentMain.tracksList.layoutManager = LinearLayoutManager(this)
@@ -284,13 +285,13 @@ class MainActivity : BaseActivity(),
 
         }
 
-        val sendInterval = sharedPref.getInt("sendInterval", 1200).toLong()
+        val sendInterval = sharedPref.getInt("sendInterval", 10).toLong()
         val syncWithNGW = sharedPref.getBoolean(Constants.Settings.sendTracksToNGWKey, false)
-//        if (syncWithNGW) {
-//            enableSync(sendInterval)
-//        } else {
-//            disableSync()
-//        } // not needed for tracker  -   track sends to NGW directly - no
+        if (syncWithNGW) {
+            enableSync(sendInterval)
+        } else {
+            disableSync()
+        } // not needed for tracker  -   track sends to NGW directly - no
 
         if(mHasGPSPerm) {
             setupFab()
@@ -497,6 +498,13 @@ class MainActivity : BaseActivity(),
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//        Log.e("TTRRAACCKKEERR", "requestCode " + requestCode)
+        //Log.e("TTRRAACCKKEERR", "permissions " + permissions.toString())
+//        for (perStr in permissions)
+//            Log.e("TTRRAACCKKEERR", "permissions " + perStr)
+//
+//        for (grant in grantResults)
+//            Log.e("TTRRAACCKKEERR", "grantResults " + grant)
         when (requestCode) {
             NGT_PERMISSIONS_REQUEST_INTERNET -> {
                 mHasInternetPerm = (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
@@ -510,6 +518,17 @@ class MainActivity : BaseActivity(),
                 if(mHasGPSPerm) {
                     startGPS()
                     setupFab()
+                }
+                return
+            }
+            LOCATION_REQUEST ->{
+                if (permissions.size ==1 && permissions[0].equals(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                    && grantResults.size == 1 && grantResults[0] == 0){
+                    startService(baseContext, TrackerService.Command.START)
+                    if(!mIsBound) {
+                        val intent = Intent(baseContext, TrackerService::class.java)
+                        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+                    }
                 }
                 return
             }

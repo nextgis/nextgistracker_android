@@ -124,11 +124,11 @@ class TrackAdapter(private val context: Context,
     override fun getItemCount() = tracks.size
 
     fun refresh() {
-        Log.e("TTRRAACCKK", "-----------------")
-        Log.e("TTRRAACCKK", "refresh - old size: " +   tracks.size)
+//        Log.e("TTRRAACCKK", "-----------------")
+//        Log.e("TTRRAACCKK", "refresh - old size: " +   tracks.size)
         tracks = tracksTable.getTracks()
-        Log.e("TTRRAACCKK", "refresh - new size: " +   tracks.size)
-        printMessage("Tracks count = ${tracks.size}")
+//        Log.e("TTRRAACCKK", "refresh - new size: " +   tracks.size)
+        //printMessage("Tracks count = ${tracks.size}")
         notifyDataSetChanged()
     }
 
@@ -159,7 +159,7 @@ class TrackAdapter(private val context: Context,
             continueExecution = true
             exportTask = this
             val builder = AlertDialog.Builder(context)
-            builder.setView(R.layout.progress)
+            builder.setView(R.layout.share_gpx_progress)
                 .setCancelable(true)
                 .setNegativeButton(android.R.string.cancel) { _, _ ->
                     continueExecution = false
@@ -215,6 +215,7 @@ class TrackAdapter(private val context: Context,
             if(!continueExecution) {
                 result = ""
             }
+//            Thread.sleep(5000)
             return result
         }
 
