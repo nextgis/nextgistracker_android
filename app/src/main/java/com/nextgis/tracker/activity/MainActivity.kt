@@ -21,31 +21,29 @@
  */
 
 package com.nextgis.tracker.activity
-
 import android.Manifest
-import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.ComponentName
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.location.GnssStatus
 import android.location.GpsStatus
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.IBinder
 import android.preference.PreferenceManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
@@ -54,22 +52,31 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nextgis.maplib.API
 import com.nextgis.maplib.Constants
+import com.nextgis.maplib.Constants.Settings.sendIntervalKey
 import com.nextgis.maplib.Location
 import com.nextgis.maplib.TrackInfo
 import com.nextgis.maplib.checkPermission
 import com.nextgis.maplib.fragment.LocationInfoFragment
+import com.nextgis.maplib.printError
+import com.nextgis.maplib.printMessage
 import com.nextgis.maplib.service.TrackerDelegate
 import com.nextgis.maplib.service.TrackerService
 import com.nextgis.tracker.BuildConfig
+import com.nextgis.tracker.MainApplication
 import com.nextgis.tracker.R
 import com.nextgis.tracker.adapter.TrackAdapter
 import com.nextgis.tracker.databinding.ActivityMainBinding
 import com.nextgis.tracker.startService
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.text.DateFormat
 import java.util.Date
 import java.util.TimeZone
 
-public const val SENTRY_DSN = BuildConfig.TRACKER_SENTRY_DSN
+const val SENTRY_DSN = BuildConfig.TRACKER_SENTRY_DSN
 private const val NGT_PERMISSIONS_REQUEST_INTERNET = 771
 private const val NGT_PERMISSIONS_REQUEST_GPS = 772
 private const val NGT_PERMISSIONS_REQUEST_WAKE_LOCK = 773
@@ -78,25 +85,22 @@ const val PERMISSIONS_REQUEST = 1
 const val LOCATION_REQUEST = 2
 
 
-
 class MainActivity : BaseActivity(),
     PopupMenu.OnMenuItemClickListener, GpsStatus.Listener, LocationListener  {
 
+
+
     companion object const {
         val PERMISSIONS_REQUEST: Int = 1
+        val CUSTOM_INTENT_ACTION = "com.nextgis.tracker.CUSTOM_SHARE_INTENT"
+        const val REQUEST_SAVE_FILE = 8001
+
     }
 
     private lateinit var binding: ActivityMainBinding
-
-
     protected var mLocationManager: LocationManager? = null
     private var mSatelliteCount = 0
     var localGPSOn = false
-
-//    enum class MessageType(val code: String) {
-//        PROCESS_LOCATION_UPDATES("com.nextgis.tracker.PROCESS_LOCATION_UPDATES")
-//    }
-
 
     private var mHasInternetPerm = false
     private var mHasGPSPerm = false
@@ -133,23 +137,6 @@ class MainActivity : BaseActivity(),
         }
     }
 
-//    private val mBroadCastReceiver = object : BroadcastReceiver() {
-//        override fun onReceive(context: Context?, intent: Intent?) {
-//            Log.e("TRACKK", "onReceive mBroadCastReceiver")
-//            when (intent?.action) {
-//                MessageType.PROCESS_LOCATION_UPDATES.code -> {
-//                    if(intent.hasExtra(LocationManager.KEY_LOCATION_CHANGED)) {
-//                        val location = intent.extras?.get(LocationManager.KEY_LOCATION_CHANGED) as? android.location.Location
-//                        if(location != null) {
-//                            Log.e("TRACKK", "location != null")
-//                            processLocationChanges(Location(location,0))
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-
     @RequiresApi(Build.VERSION_CODES.N)
     private val mGnssStatusListener = object : GnssStatus.Callback() {
         override fun onSatelliteStatusChanged(status: GnssStatus) {
@@ -162,51 +149,17 @@ class MainActivity : BaseActivity(),
             if(satelliteCount > 0) {
                 mSatelliteCount = satelliteCount
             }
-//            printMessage("onSatelliteStatusChanged: Satellite count: $mSatelliteCount")
         }
     }
-
-    private val mGpsLocationListener = object : LocationListener {
-
-        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {        }
-        override fun onProviderEnabled(provider: String) {        }
-        override fun onProviderDisabled(provider: String) {        }
-
-        override fun onLocationChanged(location: android.location.Location) {
-            processLocationChanges(Location(location, mSatelliteCount))
-        }
-    }
-
-//    @SuppressLint("MissingPermission")
-//    @Suppress("DEPRECATION")
-//    private val mGpsStatusListener = GpsStatus.Listener { event ->
-//        if(event == GpsStatus.GPS_EVENT_SATELLITE_STATUS) {
-//            var satelliteCount = 0
-//
-//            if (checkPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-//                val satellites = mLocationManager?.getGpsStatus(null)?.satellites
-//                if(satellites != null) {
-//                    for (sat in satellites) {
-//                        if (sat.usedInFix()) {
-//                            satelliteCount++
-//                        }
-//                    }
-//                }
-//            }
-//            if(satelliteCount > 0) {
-//                mSatelliteCount = satelliteCount
-//            }
-//        }
-//    }
 
     fun processLocationChanges(location: Location){
         try {
             val fm = supportFragmentManager
             var locationFrag =
-                fm.findFragmentById(R.id.fragmentLocationInfo) as LocationInfoFragment
+                fm.findFragmentById(R.id.fragmentLocationInfo) as LocationInfoFragment?
             locationFrag?.onLocationChanged(location)
         } catch (exception:Exception){
-            Log.e("TAG", exception.toString())
+            printError(exception.toString())
         }
     }
 
@@ -240,14 +193,14 @@ class MainActivity : BaseActivity(),
             permissions = arrayListOf( Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2)
                 permissions.add(Manifest.permission.POST_NOTIFICATIONS)
-            requestPermissions( R.string.permissions, R.string.requested_permissions,PERMISSIONS_REQUEST,
+            requestPermissions( R.string.permissions, R.string.requested_permissions,
+                PERMISSIONS_REQUEST,
                 permissions.toTypedArray()
             )
         }
 
         if(!checkPermission(this, Manifest.permission.WAKE_LOCK)) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.WAKE_LOCK)) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.WAKE_LOCK)) {
             }
             else {
                 ActivityCompat.requestPermissions(
@@ -259,9 +212,7 @@ class MainActivity : BaseActivity(),
         }
 
         var sentryDSN = ""
-        //if(mHasInternetPerm) {
-            sentryDSN = SENTRY_DSN
-        //}
+        sentryDSN = SENTRY_DSN
 
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         API.init(this@MainActivity, sentryDSN)
@@ -285,13 +236,13 @@ class MainActivity : BaseActivity(),
 
         }
 
-        val sendInterval = sharedPref.getInt("sendInterval", 10).toLong()
+        val sendInterval = sharedPref.getInt(sendIntervalKey, 10).toLong()
         val syncWithNGW = sharedPref.getBoolean(Constants.Settings.sendTracksToNGWKey, false)
         if (syncWithNGW) {
             enableSync(sendInterval)
         } else {
             disableSync()
-        } // not needed for tracker  -   track sends to NGW directly - no
+        }
 
         if(mHasGPSPerm) {
             setupFab()
@@ -299,28 +250,11 @@ class MainActivity : BaseActivity(),
     }
 
     fun stopGPS(){
-
-
         mLocationManager?.removeUpdates(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             mLocationManager?.unregisterGnssStatusCallback(mGnssStatusListener)
         } else
             mLocationManager?.removeGpsStatusListener(this)
-
-
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//            mLocationManager?.removeUpdates(getPendingIntent())
-//            try {
-//                unregisterReceiver(mBroadCastReceiver)
-//            } catch (exeception: Exception ){
-//                Log.e("TAG", exeception.toString())
-//            }
-//            mLocationManager?.unregisterGnssStatusCallback(mGnssStatusListener)
-//        }
-//        else {
-//            mLocationManager?.removeUpdates(mGpsLocationListener)
-//            mLocationManager?.removeGpsStatusListener(mGpsStatusListener)
-//        }
         localGPSOn = false
     }
 
@@ -328,17 +262,13 @@ class MainActivity : BaseActivity(),
         if (!mIsServiceRunning ) {
             if (localGPSOn)
                 return
-            if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(this,ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                ){
+            if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
 
                 val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
                 val minTime =
                     sharedPref.getInt("timeInterval", 1).toLong() * Constants.millisecondsInSecond
                 val minDist = sharedPref.getInt("minDistance", 10).toFloat()
-
                 localGPSOn = true
-
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     mLocationManager?.registerGnssStatusCallback(mGnssStatusListener)
@@ -347,19 +277,21 @@ class MainActivity : BaseActivity(),
 
                 val provider = LocationManager.GPS_PROVIDER
                 mLocationManager?.requestLocationUpdates(provider, minTime, minDist, this)
-
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//                    val filter = IntentFilter()
-//                    filter.addAction(MessageType.PROCESS_LOCATION_UPDATES.code)
-//                    registerReceiver(mBroadCastReceiver, filter)
-//                    mLocationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime,minDist,getPendingIntent())
-//                    mLocationManager?.registerGnssStatusCallback(mGnssStatusListener)
-//                } else {
-//                    mLocationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER,minTime,minDist,mGpsLocationListener,mainLooper)
-//                    mLocationManager?.addGpsStatusListener(mGpsStatusListener)
-//                }
             }
         }
+//        else {
+//            if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
+//                AlertDialog.Builder(this)
+//                    .setTitle("Permission")
+//                    .setMessage("for work app need Fine Location perm")
+//                    .setPositiveButton("OK") { _, _ ->
+//
+//                    }
+//                    .setNegativeButton(android.R.string.cancel) { _, _ -> {} }
+//                    .create()
+//                    .show()
+//            }
+//        }
     }
 
     fun deleteTrack(trackInfo: TrackInfo){
@@ -369,9 +301,6 @@ class MainActivity : BaseActivity(),
         tracksTable?.deletePoints(trackInfo.start, trackInfo.stop)
         mTracksAdapter?.refresh()
     }
-
-//    fun onTrackClick(){
-//    }
 
     protected fun isPermissionGranted(permission: String?): Boolean {
         return ContextCompat.checkSelfPermission(this, permission!! ) == PackageManager.PERMISSION_GRANTED
@@ -421,6 +350,19 @@ class MainActivity : BaseActivity(),
                 startService(this, TrackerService.Command.STOP)
             }
             else {
+//                if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
+//                    AlertDialog.Builder(this)
+//                        .setTitle("Permission")
+//                        .setMessage("for work, app need Fine Location perm")
+//                        .setPositiveButton("ask perm") { _, _ ->
+//                            askFineLocalPermission()
+//                        }
+//                        .setNegativeButton(android.R.string.cancel) { _, _ -> {} }
+//                        .create()
+//                        .show()
+//                    return@setOnClickListener
+//                }
+
                 TrackerService.showBackgroundDialog(this, object : TrackerService.BackgroundPermissionCallback {
                     override fun beforeAndroid10(hasBackgroundPermission: Boolean) {
                         if (!hasBackgroundPermission) {
@@ -478,7 +420,6 @@ class MainActivity : BaseActivity(),
         ActivityCompat.requestPermissions(this, permissions, LOCATION_REQUEST)
     }
 
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
@@ -491,6 +432,17 @@ class MainActivity : BaseActivity(),
                 startActivity(intent)
                 return true
             }
+//            R.id.sync_manual -> {
+//                val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+//                val syncWithNGW = sharedPref.getBoolean(Constants.Settings.sendTracksToNGWKey, false)
+//                if (syncWithNGW)
+//                    startManualSync()
+//                else {
+//                    val intent = Intent(this, SettingsActivity::class.java)
+//                    startActivity(intent)
+//                }
+//                return true
+//            }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -498,13 +450,6 @@ class MainActivity : BaseActivity(),
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//        Log.e("TTRRAACCKKEERR", "requestCode " + requestCode)
-        //Log.e("TTRRAACCKKEERR", "permissions " + permissions.toString())
-//        for (perStr in permissions)
-//            Log.e("TTRRAACCKKEERR", "permissions " + perStr)
-//
-//        for (grant in grantResults)
-//            Log.e("TTRRAACCKKEERR", "grantResults " + grant)
         when (requestCode) {
             NGT_PERMISSIONS_REQUEST_INTERNET -> {
                 mHasInternetPerm = (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
@@ -584,13 +529,6 @@ class MainActivity : BaseActivity(),
         return true
     }
 
-//    private fun getPendingIntent() : PendingIntent {
-//        val intent = Intent()
-//        intent.action = MessageType.PROCESS_LOCATION_UPDATES.code
-//        return PendingIntent.getBroadcast(this, 0, intent,
-//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
-//    }
-
     override fun onPause() {
         super.onPause()
         stopGPS()
@@ -629,4 +567,128 @@ class MainActivity : BaseActivity(),
     override fun onLocationChanged(location: android.location.Location) {
         processLocationChanges(Location(location, mSatelliteCount))
     }
-}
+
+    override fun onProviderEnabled(provider: String) {
+        printMessage("onProviderEnabled: provider: $provider")
+    }
+
+    override fun onProviderDisabled(provider: String) {
+        printMessage("onProviderDisabled: provider: $provider")
+    }
+
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        printMessage("onStatusChanged: provider: $provider, status: $status")
+    }
+
+    override fun onActivityReenter(resultCode: Int, data: Intent?) {
+        super.onActivityReenter(resultCode, data)
+    }
+
+//    override fun onNewIntent(intent: Intent?) {
+//        super.onNewIntent(intent)
+//
+//        if (intent?.action == "SAVE_FILE") {
+//            val fileUri: Uri? = intent.getParcelableExtra("fileUri")
+//            fileUri?.let {
+//                val  fileOfData = (applicationContext as MainApplication).getFileToSave()
+//                saveFileToDestination(intent, fileOfData)
+//            }
+//        }
+//    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_SAVE_FILE && resultCode == Activity.RESULT_OK) {
+            if (data != null) {
+                val fileOfData = (applicationContext as MainApplication).getFileToSave()
+                saveFileToDestination(data, fileOfData)
+            }
+
+        }
+    }
+
+    private fun saveFileToDestination(destination: Intent, inputData: File?) {
+            // сохраняем в выбранное место
+            if (destination == null)
+                return
+            try {
+                val resolver: ContentResolver = contentResolver
+                val docUri: Uri? = destination?.getData()
+
+                if (docUri != null) {
+                    if (docUri != null) {
+                        val output = resolver.openOutputStream(docUri)
+                        try {
+                            val inputStream: InputStream = FileInputStream(inputData)
+                            val buffer = ByteArray(10240) // or other buffer size
+                            var read: Int
+                            while ((inputStream.read(buffer).also { read = it }) != -1) {
+                                output!!.write(buffer, 0, read)
+                            }
+                            output!!.flush()
+                            Toast.makeText(MainActivity@ this, R.string.save_file_complete, Toast.LENGTH_LONG)
+                                .show()
+                        } catch (ex: java.lang.Exception) {
+                            AlertDialog.Builder(MainActivity@this)
+                                .setMessage(R.string.error_save_file)
+                                .setPositiveButton(android.R.string.ok, null)
+                                .create()
+                                .show()
+                            //Toast.makeText(activity, R.string.error_on_save, Toast.LENGTH_LONG).show();
+                            printError(if (ex.message == null ) ex.toString() else ex.message!! )
+                        } finally {
+                            output!!.close()
+                        }
+                    }
+                }
+            } catch (exception: java.lang.Exception) {
+                AlertDialog.Builder(MainActivity@ this)
+                    .setMessage(R.string.error_save_file)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .create()
+                    .show()
+                //Toast.makeText(activity, R.string.error_on_save, Toast.LENGTH_LONG).show();
+                printError(if (exception.message == null ) exception.toString() else exception.message!!)
+            }
+        }
+    }
+
+//    private fun saveFileToDownloads(fileUri: Uri) {
+//        try {
+//            // Папка для загрузок
+//            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+//            if (!downloadsDir.exists()) downloadsDir.mkdirs()
+//
+//            // Копируем файл в папку Downloads
+//            val inputStream: InputStream? = contentResolver.openInputStream(fileUri)
+//            val outputFile = File(downloadsDir, "shared_gpx_file.gpx")
+//            val outputStream: OutputStream = FileOutputStream(outputFile)
+//
+//            val buffer = ByteArray(1024)
+//            var length: Int
+//            while (inputStream?.read(buffer).also { length = it ?: -1 } != -1) {
+//                outputStream.write(buffer, 0, length)
+//            }
+//
+//            outputStream.close()
+//            inputStream?.close()
+//
+//            Toast.makeText(this, "Файл сохранен в папку Downloads", Toast.LENGTH_SHORT).show()
+//        } catch (e: Exception) {
+//            Toast.makeText(this, "Ошибка сохранения файла: ${e.message}", Toast.LENGTH_LONG).show()
+//        }
+//    }
+
+    //    fun askFineLocalPermission(){
+//        val permissions: ArrayList<String>
+//        permissions = arrayListOf( Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+//
+//        requestPermissions( R.string.permissions, R.string.requested_permissions_fineloc,
+//            PERMISSIONS_REQUEST,
+//            permissions.toTypedArray())
+//
+//
+//        //ActivityCompat.requestPermissions(this, permissions.toTypedArray(), PERMISSIONS_REQUEST)
+//    }
+//}

@@ -20,6 +20,7 @@
  */
 
 package com.nextgis.tracker.adapter
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -34,7 +35,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.nextgis.maplib.*
+import com.nextgis.tracker.MainApplication
 import com.nextgis.tracker.R
+import com.nextgis.tracker.activity.MainActivity.const.REQUEST_SAVE_FILE
 import com.nextgis.tracker.databinding.TrackViewBinding
 import java.io.File
 import java.text.DateFormat
@@ -82,8 +85,6 @@ class TrackAdapter(private val context: Context,
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackAdapter.TrackViewHolder {
         // create a new view
         val binding = TrackViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        //val view = TrackViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        //val view = LayoutInflater.from(parent.context).inflate(R.layout.track_view, parent, false) as View
         return TrackViewHolder(binding) {
             val newPosition = tracks.size - it - 1
             onItemClick(tracks[newPosition], binding.clickArea)
@@ -109,26 +110,25 @@ class TrackAdapter(private val context: Context,
             binding.trackName.text = tracks[newPosition].name
             binding.trackDescription.text = createDescription(context, tracks[newPosition].start, tracks[newPosition].stop)
             binding.shareImage.setOnClickListener {
-                shareGPX(tracks[newPosition].start, tracks[newPosition].stop, tracks[newPosition].name)
+
+                val savedTrackFileName = "track_" + getStartDateDescription(context, tracks[newPosition].start).lowercase()
+                    .replace(" ", "_")
+                    .replace(",", "") + "_" +
+                 getStartTimeDescription(context, tracks[newPosition].start)
+                    .replace(" ", "_")
+                    .replace(",", "") + ".gpx"
+
+
+                shareGPX(tracks[newPosition].start, tracks[newPosition].stop, tracks[newPosition].name,
+                    savedTrackFileName)
             }
         }
-
-//
-//        holder.ite trackName.text = tracks[newPosition].name
-//        holder.view.trackDescription.text = createDescription(context, tracks[newPosition].start, tracks[newPosition].stop)
-//        holder.view.shareImage.setOnClickListener {
-//            shareGPX(tracks[newPosition].start, tracks[newPosition].stop, tracks[newPosition].name)
-//        }
     }
 
     override fun getItemCount() = tracks.size
 
     fun refresh() {
-//        Log.e("TTRRAACCKK", "-----------------")
-//        Log.e("TTRRAACCKK", "refresh - old size: " +   tracks.size)
         tracks = tracksTable.getTracks()
-//        Log.e("TTRRAACCKK", "refresh - new size: " +   tracks.size)
-        //printMessage("Tracks count = ${tracks.size}")
         notifyDataSetChanged()
     }
 
@@ -143,11 +143,40 @@ class TrackAdapter(private val context: Context,
         return formatter.format(start) + " - " + formatter.format(stop)
     }
 
-    inner class ExportToGPXAsyncTask(private val start: Date, private val stop: Date, private val name: String) :
+    private fun getStartDateDescription(context: Context, start: Date) : String {
+
+        val  DATE_TIME_FORMAT = "yyyy-MM-dd"
+        val dateFormatter = SimpleDateFormat(DATE_TIME_FORMAT)
+        return dateFormatter.format(start)
+
+
+//        val formatter = DateFormat.getTimeInstance()
+//        formatter.timeZone = TimeZone.getDefault()
+//        return formatter.format(start)
+    }
+
+    private fun getStartTimeDescription(context: Context, start: Date) : String {
+
+        val  DATE_TIME_FORMAT = "HH:mm"
+        val dateFormatter = SimpleDateFormat(DATE_TIME_FORMAT)
+        return dateFormatter.format(start)
+
+
+//        val formatter = DateFormat.getTimeInstance()
+//        formatter.timeZone = TimeZone.getDefault()
+//        return formatter.format(start)
+    }
+
+
+    inner class ExportToGPXAsyncTask(private val start: Date,
+                                     private val stop: Date,
+                                     private val name: String,
+                                     private val mDisplayedTrackName:String) :
         AsyncTask<Void, Int, String>() {
 
         private var currentMessage = ""
         private var progressDialog: AlertDialog? = null
+        val displayedTrackName = mDisplayedTrackName
 
         fun publishProgress(complete: Double, message: String) {
             currentMessage = message
@@ -168,16 +197,6 @@ class TrackAdapter(private val context: Context,
             progressDialog = builder.create()
             progressDialog?.show()
         }
-
-//        fun deleteRecursive(fileOrDirectory: File?): Boolean {
-//            var isOK = true
-//            if (fileOrDirectory!!.isDirectory) {
-//                for (child in fileOrDirectory.listFiles()) {
-//                    isOK = deleteRecursive(child) && isOK
-//                }
-//            }
-//            return fileOrDirectory.delete() && isOK
-//        }
 
         @Synchronized
         @Throws(RuntimeException::class)
@@ -210,12 +229,10 @@ class TrackAdapter(private val context: Context,
                     result = "$systemPath/nga_tracks_pt.gpx"
                 }
             }
-
             // If user click cancel, but callback not intercept it
             if(!continueExecution) {
                 result = ""
             }
-//            Thread.sleep(5000)
             return result
         }
 
@@ -227,7 +244,6 @@ class TrackAdapter(private val context: Context,
             progressBar.let {
                 progressBar?.progress = values[0] ?: 0
             }
-            //progressDialog?.loader?.progress = values[0] ?: 0
         }
 
         override fun onPostExecute(result: String) {
@@ -238,34 +254,63 @@ class TrackAdapter(private val context: Context,
                 Toast.makeText(context, API.lastError(), Toast.LENGTH_SHORT).show()
             }
             else {
-                val gpxFile = File(result)
+                val from: File = File(result)
+                val to: File = File(from.parent + "/" + displayedTrackName)
+                from.renameTo(to)
+                val resultnew = to.absolutePath
+
+                val gpxFile = File(resultnew)
                 val fileUri: Uri? = try {
                     FileProvider.getUriForFile(
                         context,
                         "${context.packageName}.provider",
                         gpxFile)
                 } catch (e: IllegalArgumentException) {
-                    Log.e("tracker","The selected file can't be shared: $result")
-                    Toast.makeText(context, "Error on export track", Toast.LENGTH_SHORT).show()
+                    Log.e("tracker","The selected file can't be shared: $resultnew")
+                    Toast.makeText(context, R.string.error_export_track, Toast.LENGTH_SHORT).show()
                     null
                 }
 
                 if(fileUri != null) {
-                    val sendIntent: Intent = Intent().apply {
+
+                    val shareIntent: Intent = Intent().apply {
                         action = Intent.ACTION_SEND
                         putExtra(Intent.EXTRA_STREAM, fileUri)
                         putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.send_track).format(name))
-                        type = "text/plain"
+                        type = "application/gpx+xml"
                         flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                     }
-                    context.startActivity(Intent.createChooser(sendIntent, context.getString(R.string.share_gpx)))
+
+
+                    val saveIntent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        putExtra(Intent.EXTRA_TITLE, displayedTrackName)
+                        //action = "SAVE_FILE"
+                        putExtra("fileUri", fileUri)
+                        type = "application/gpx+xml"
+
+                    }
+                    val chooserIntent = Intent.createChooser(shareIntent, "Share GPX File").apply {
+                        putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(saveIntent))
+                    }
+
+                    (context.applicationContext as MainApplication).setFileToSave(gpxFile)
+                    (context as Activity).startActivityForResult(chooserIntent, REQUEST_SAVE_FILE)
+
+//                    val fileName: String = "track.gpx"
+//                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+//                    intent.addCategory(Intent.CATEGORY_OPENABLE)
+//                    intent.setType("*/*")
+//                    intent.putExtra(Intent.EXTRA_TITLE, fileName)
+//                    (context as Activity).startActivityForResult(intent, REQUEST_SAVE_FILE)
+
                 }
             }
             exportTask = null
         }
     }
 
-    private fun shareGPX(start: Date, stop: Date, name: String) {
-        ExportToGPXAsyncTask(start, stop, name).execute()
+    private fun shareGPX(start: Date, stop: Date, name: String, mDisplayedTrackName:String) {
+        ExportToGPXAsyncTask(start, stop, name, mDisplayedTrackName).execute()
     }
 }

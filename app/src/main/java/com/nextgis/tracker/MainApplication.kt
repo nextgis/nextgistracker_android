@@ -2,9 +2,8 @@
  * Project:  NextGIS Tracker
  * Purpose:  Software tracker for nextgis.com cloud
  * Author:   Dmitry Baryshnikov <dmitry.baryshnikov@nextgis.com>
- * Author:   Stanislav Petriakov, becomeglory@gmail.com
  * ****************************************************************************
- * Copyright (c) 2018-2019 NextGIS <info@nextgis.com>
+ * Copyright (c) 2018-2024 NextGIS <info@nextgis.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,16 +20,29 @@
  */
 
 package com.nextgis.tracker
-import android.content.Context
-import android.content.Intent
-import com.nextgis.maplib.service.TrackerService
-import com.nextgis.maplib.startTrackerService
-import com.nextgis.tracker.activity.MainActivity
 
-internal fun startService(context: Context, command: TrackerService.Command, options: Map<String, String> = mapOf()) {
-    if (command == TrackerService.Command.START) {
-        startTrackerService(context, command, Intent(context, MainActivity::class.java), options)
-    } else {
-        startTrackerService(context, command, null, options)
+import android.app.Application
+import java.io.File
+import java.lang.ref.WeakReference
+
+class MainApplication : Application() {
+
+    protected var fileToSave: WeakReference<File>? = WeakReference(null)
+
+    override fun onCreate() {
+        super.onCreate()
     }
+
+    public fun setFileToSave(file: File){
+        fileToSave = WeakReference(file)
+    }
+
+    fun getFileToSave() : File? {
+        return fileToSave?.get()
+    }
+
+
+
+
+
 }

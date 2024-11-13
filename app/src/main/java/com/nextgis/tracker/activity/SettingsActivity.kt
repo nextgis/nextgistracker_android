@@ -21,7 +21,6 @@
  */
 
 package com.nextgis.tracker.activity
-import android.Manifest
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -30,8 +29,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.SharedPreferences
-import android.net.Network
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.IBinder
 import android.preference.PreferenceManager.getDefaultSharedPreferences
@@ -41,21 +42,33 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.nextgis.maplib.*
+import androidx.core.content.FileProvider
+import com.nextgis.maplib.API
+import com.nextgis.maplib.Constants
+import com.nextgis.maplib.Constants.Settings.divTracksByDayKey
+import com.nextgis.maplib.Constants.Settings.minDistanceKey
+//import com.nextgis.maplib.Constants.Settings.restoreTrackAfterRebootKey
+import com.nextgis.maplib.Constants.Settings.sendIntervalKey
+import com.nextgis.maplib.Constants.Settings.timeIntervalKey
 import com.nextgis.maplib.Constants.Settings.webGisNameKey
+import com.nextgis.maplib.NGWResourceGroup
+import com.nextgis.maplib.NGWTrackerGroup
+import com.nextgis.maplib.Object
+import com.nextgis.maplib.Track
 import com.nextgis.maplib.activity.AddInstanceActivity
-import com.nextgis.maplib.activity.AddInstanceActivity.Companion.ADD_INSTANCE_TO_CREATE_TRACKER_REQUEST
-//import com.nextgis.maplib.activity.AddInstanceActivity.Companion.ADD_INSTANCE_TO_CREATE_TRACKER_REQUEST
+import com.nextgis.maplib.printError
+import com.nextgis.maplib.printMessage
 import com.nextgis.maplib.service.TrackerService
 import com.nextgis.maplib.util.NonNullObservableField
 import com.nextgis.maplib.util.isInternetAvailable
 import com.nextgis.maplib.util.runAsync
 import com.nextgis.tracker.R
 import com.nextgis.tracker.databinding.ActivitySettingsBinding
-import com.nextgis.tracker.fragment.ResourceNameDialog
 import java.util.Stack
 
 const val CONTENT_ACTIVITY = 604
+//const val CATLOG_FILE = "catlog_current_file"
+//const val FILE_FLDR = "logcat"
 
 class SettingsActivity : BaseActivity() {
 
@@ -66,13 +79,12 @@ class SettingsActivity : BaseActivity() {
     val path = NonNullObservableField("/")
     val current: Object? get() = if (stack.isNotEmpty()) stack.peek() else null
 
-
-
     private val mHandler = Handler()
     private var mRegenerateDialogIsShown = false
 
     private var mTrackerService: TrackerService? = null
     private var mIsBound = false
+    private var hasChanges = false
     private val mServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as TrackerService.LocalBinder
@@ -96,15 +108,15 @@ class SettingsActivity : BaseActivity() {
 
         // Set values from properties
         val sharedPref = getDefaultSharedPreferences(this)
-        binding.divTrackByDay.isChecked = sharedPref.getBoolean("divTracksByDay", true)
-        binding.timeInterval.intValue = sharedPref.getInt("timeInterval", 10)    // 10 sec
-        binding.minDistance.intValue = sharedPref.getInt("minDistance", 10)     // 10 m
+        binding.divTrackByDay.isChecked = sharedPref.getBoolean(divTracksByDayKey, true)
+//        binding.restoreTrackAfterRestart.isChecked = sharedPref.getBoolean(restoreTrackAfterRebootKey, false)
 
-        binding.sendInterval.intValue = sharedPref.getInt("sendInterval", 10)
+        binding.timeInterval.intValue = sharedPref.getInt(timeIntervalKey, 10)    // 10 sec
+        binding.minDistance.intValue = sharedPref.getInt(minDistanceKey, 10)     // 10 m
+
+        binding.sendInterval.intValue = sharedPref.getInt(sendIntervalKey, 10)
         binding.sendPointMax.intValue = sharedPref.getInt(Constants.Settings.sendTracksPointsMaxKey, 100)
-
         binding.deviceId.text = Track.getId()
-
         binding.progressloaderarea.setOnClickListener {  }
         binding.sendToNgw.isChecked = sharedPref.getBoolean(Constants.Settings.sendTracksToNGWKey, false)
 
@@ -127,9 +139,9 @@ class SettingsActivity : BaseActivity() {
                     // alert
                         runOnUiThread{
                             AlertDialog.Builder(this@SettingsActivity)
-                                .setTitle("Tracker error")
-                                .setMessage("Tracker is not registered on server, sending data is set to off" )
-                                .setPositiveButton("ok") { _, _ -> {}}
+                                .setTitle(R.string.tracker_error_header)
+                                .setMessage(R.string.tracker_error_text )
+                                .setPositiveButton(android.R.string.ok) { _, _ -> {}}
                                 .create()
                                 .show()
                         }
@@ -147,7 +159,7 @@ class SettingsActivity : BaseActivity() {
                         runOnUiThread {
                             hideProgress()
                             binding.sendToNgw.isChecked=false
-                            Toast.makeText(getBaseContext(), "No Internet connection - try later", Toast.LENGTH_LONG).show()
+                            Toast.makeText(getBaseContext(), R.string.no_internet, Toast.LENGTH_LONG).show()
                         }
                         return@runAsync
                     }
@@ -155,8 +167,6 @@ class SettingsActivity : BaseActivity() {
                         // start tracker creation - first login to NGW
                         runOnUiThread({
                             val intent = Intent(this, AddInstanceActivity::class.java)
-                            //startActivityForResult(intent, AddInstanceActivity.ADD_INSTANCE_REQUEST)
-                            //clearConnections()
                             startActivityForResult(intent, AddInstanceActivity.ADD_INSTANCE_TO_CREATE_TRACKER_REQUEST)
                         })
 
@@ -184,28 +194,6 @@ class SettingsActivity : BaseActivity() {
         if(binding.sendToNgw.isChecked) {
             binding.sendToNgw.isEnabled = true
         }
-        else {
-            //binding.sendToNgw.isEnabled = false
-//            val checkTrackerInNGW = object : Runnable {
-//                override fun run() {
-//                    // Check tracker is in web GIS
-//                    if (Track.isRegistered()) {
-//                        binding.sendToNgw.isEnabled = true
-//                    } else {
-//                        //binding.sendToNgw.isEnabled = false
-//                        runAsync {
-//                            mHandler.postDelayed(this, 5000) // check every 5 seconds
-//                        }
-//                    }
-//                }
-//            }
-//            if (checkPermission(this, Manifest.permission.INTERNET)) {
-//                runAsync {
-//                    // Permission is granted
-//                    mHandler.post(checkTrackerInNGW)
-//                }
-//            }
-        }
 
         binding.shareId.setOnClickListener(){
             val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
@@ -213,35 +201,7 @@ class SettingsActivity : BaseActivity() {
             clipboard.setPrimaryClip(clip)
             Toast.makeText(this, R.string.copied, Toast.LENGTH_LONG).show()
         }
-
-//        binding.shareButton.setOnClickListener {
-//            val sendIntent: Intent = Intent().apply {
-//                action = Intent.ACTION_SEND
-//                putExtra(
-//                    Intent.EXTRA_TEXT,
-//                    getString(R.string.share_text).format(Track.getId())
-//                )
-//                putExtra(
-//                    Intent.EXTRA_SUBJECT,
-//                    getString(R.string.share_subj)
-//                )
-//                type = "text/plain"
-//            }
-//            startActivity(Intent.createChooser(sendIntent, getString(R.string.share_tracker_id)))
-//        }
-
-
-//        binding.createInNgwButton.setOnClickListener {
-//            val intent = Intent(this, AddInstanceActivity::class.java)
-//            startActivityForResult(intent, AddInstanceActivity.ADD_INSTANCE_REQUEST)
-//        }
-
-//        binding.regenerateId.setOnClickListener {
-//            mRegenerateDialogIsShown = true
-//            showRegenerateDialog()
-//        }
     }
-
 
     fun updateSendToNGWPrompt(textView : TextView,  sharedPref : SharedPreferences){
         val gisName = sharedPref.getString(webGisNameKey, "")
@@ -266,20 +226,12 @@ class SettingsActivity : BaseActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-
         val sharedPref = getDefaultSharedPreferences(this)
         val sendToNGWCPrefValue = sharedPref.getBoolean(Constants.Settings.sendTracksToNGWKey, false)
         if (binding.sendToNgw.isChecked && sendToNGWCPrefValue  == false && requestCode == AddInstanceActivity.ADD_INSTANCE_REQUEST)
             binding.sendToNgw.isChecked = false
-            // turn off if no
 
         when (requestCode) {
-//            ADD_INSTANCE_TO_CREATE_TRACKER_REQUEST -> {
-//                // create  tracker id
-//                showProgress()
-//                runAsync {
-//                }
-//            }
             AddInstanceActivity.ADD_INSTANCE_REQUEST -> {
                 if (resultCode == Activity.RESULT_OK)
                     getInstanceURL()?.let {
@@ -290,42 +242,30 @@ class SettingsActivity : BaseActivity() {
                 showProgress()
                 runAsync {
                     if (resultCode == Activity.RESULT_OK) {
-                        // get objects
-                        Log.e("TTRRAACCKKEERR", "start auto creation")
-
                         runOnUiThread { showProgress() }
-
-
                         val instanceName = getInstanceURL()
                         instanceName.let {
                             val title = instanceName?.replace(".wconn", "")
                             val rootList = root(instanceName!!)
 
-                            // check tracker folder
-                            Log.e("TTRRAACCKKEERR", "start check tracker folder")
                             var trackerFolder: Object? = null
                             for (item in rootList) {
                                 if ((item as Object).type == Object.Type.CONTAINER_NGWTRACKERGROUP.code) {
-                                    Log.e("TTRRAACCKKEERR", "tracker folder found")
                                     trackerFolder = item
                                     break
                                 }
                             }
                             if (trackerFolder == null) {
-                                Log.e("TTRRAACCKKEERR","tracker folder =null start folder creation")
-                                // create tracker folder
                                 connection?.let {
                                     trackerFolder =
                                         NGWResourceGroup(it).createTrackerGroup("TrackersGroup")
                                     if (trackerFolder == null) {
-                                        Log.e("TTRRAACCKKEERR", "tracker folder cannot be create")
+                                        printError("tracker folder cannot be create: " + API.lastError())
                                         // start manual create
                                         runOnUiThread {  startManualTrackerCreate(true) }
-
                                     }
                                 }
                             } else {
-                                Log.e("TTRRAACCKKEERR", "start tracker create")
                                 trackerFolder?.let {
                                     val id = Track.getId(false)
                                     val resultTracker = NGWTrackerGroup(it).createTracker(
@@ -333,7 +273,7 @@ class SettingsActivity : BaseActivity() {
                                         tracker_id = id
                                     )
                                     if (resultTracker == null) {
-                                        Log.e("TTRRAACCKKEERR", "tracker create failed")
+                                        printError("tracker create failed: " + API.lastError())
                                         // start manual create
                                         runOnUiThread{ startManualTrackerCreate(false) }
 
@@ -346,7 +286,7 @@ class SettingsActivity : BaseActivity() {
                                         runOnUiThread {
                                             Toast.makeText(
                                             this,
-                                            "Tracker is created",
+                                            R.string.tracker_created,
                                             Toast.LENGTH_LONG
                                         ).show()
                                             updateSendToNGWPrompt(binding.syncNgwTv, getDefaultSharedPreferences(this))
@@ -370,18 +310,11 @@ class SettingsActivity : BaseActivity() {
                     }
                     runOnUiThread {  hideProgress() }
                 }
-//                else {
-//                    Toast.makeText(this, "login error", Toast.LENGTH_SHORT).show()
-////                    getInstanceURL()?.let {  // start manual creation tracker
-////                        launchContentSelector(it)
-////                    }
-//                }
             }
 
             CONTENT_ACTIVITY -> {clearConnections()
                 if (requestCode == CONTENT_ACTIVITY){
                     if (resultCode == RESULT_OK){
-
                     }
                 }
             }
@@ -392,11 +325,11 @@ class SettingsActivity : BaseActivity() {
     private fun startManualTrackerCreate(isFolderError:Boolean ){
         binding.sendToNgw.isChecked = false
         AlertDialog.Builder(this)
-            .setTitle("Tracker error")
-            .setMessage(if (isFolderError) "\n" +
-                    "failed to create tracker folder - try creating it manually" else "Failed to create tracker - try creating it manually" )
-            .setPositiveButton("create manually") { _, _ ->
-                getInstanceURL()?.let {launchContentSelector(it) }
+            .setTitle(R.string.tracker_error_header)
+            .setMessage(if (isFolderError) "\n" + getString(R.string.tracker_folder_unable_created)
+                    + API.lastError() else getString(R.string.tracker_unable_created) + API.lastError())
+            .setPositiveButton(R.string.create_by_manual) { _, _ ->
+                getInstanceURL()?.let { launchContentSelector(it)}
             }
             .setNegativeButton(android.R.string.cancel) { _, _ -> {} }
             .create()
@@ -404,7 +337,6 @@ class SettingsActivity : BaseActivity() {
     }
 
     private fun clearConnections() {
-        Log.e(Constants.tag, "clearConnections !!! ")
         API.getCatalog()?.children()?.let {
             for (child in it)
                 if (child.type == 72) {
@@ -414,7 +346,7 @@ class SettingsActivity : BaseActivity() {
     }
 
     private fun getInstanceURL(): String? {
-        return API.getCatalog()?.children()?.firstOrNull { it.type == 72 }?.children()?.firstOrNull()?.name
+        return API.getCatalog()?.children()?.firstOrNull { it.type == 72 }?.children()?.lastOrNull()?.name
     }
 
     private fun launchContentSelector(instance: String) {
@@ -445,11 +377,25 @@ class SettingsActivity : BaseActivity() {
         super.onPause()
         // save settings
         val sharedPref = getDefaultSharedPreferences(this)
+        val diffTrackByDays =sharedPref.getBoolean(divTracksByDayKey, true)
+        val timeInterval = sharedPref.getInt(timeIntervalKey, 10)
+        val minDistance = sharedPref.getInt(minDistanceKey, 10)
+        val sendInterval = sharedPref.getInt(sendIntervalKey, 10)
+        val sendTracksPointsMaxKey = sharedPref.getInt(Constants.Settings.sendTracksPointsMaxKey,100)
+
+        if (diffTrackByDays != binding.divTrackByDay.isChecked ||
+            timeInterval !=  binding.timeInterval.intValue ||
+            minDistance != binding.minDistance.intValue ||
+            sendInterval != binding.sendInterval.intValue||
+            sendTracksPointsMaxKey !=  binding.sendPointMax.intValue)
+            hasChanges = true
+
         with (sharedPref.edit()) {
-            putBoolean("divTracksByDay", binding.divTrackByDay.isChecked)
-            putInt("timeInterval", binding.timeInterval.intValue)
-            putInt("minDistance", binding.minDistance.intValue)
-            putInt("sendInterval", binding.sendInterval.intValue)
+            putBoolean(divTracksByDayKey, binding.divTrackByDay.isChecked)
+//            putBoolean(restoreTrackAfterRebootKey, binding.restoreTrackAfterRestart.isChecked)
+            putInt(timeIntervalKey, binding.timeInterval.intValue)
+            putInt(minDistanceKey, binding.minDistance.intValue)
+            putInt(sendIntervalKey, binding.sendInterval.intValue)
             putInt(Constants.Settings.sendTracksPointsMaxKey, binding.sendPointMax.intValue)
             //putBoolean(Constants.Settings.sendTracksToNGWKey, binding.sendToNgw.isChecked)
             commit()
@@ -462,11 +408,8 @@ class SettingsActivity : BaseActivity() {
         }
 
         // restart service if it is running
-//        if(mIsBound) {
-//            mTrackerService?.update()
-//        }
-        if(mIsBound) {
-            Toast.makeText(this, "to apply changes need to restart track recording", Toast.LENGTH_SHORT).show()
+        if(mIsBound && hasChanges) {
+            Toast.makeText(this, R.string.settings_changes, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -486,7 +429,6 @@ class SettingsActivity : BaseActivity() {
 
     override fun onStart() {
         super.onStart()
-
         // Get current status
         val intent = Intent(this, TrackerService::class.java)
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
@@ -494,33 +436,22 @@ class SettingsActivity : BaseActivity() {
 
     override fun onStop() {
         super.onStop()
-
         if(mIsBound) {
             unbindService(mServiceConnection)
         }
     }
 
     fun root(instanceName:String): List<Object> {
-        Log.e("TTRRAACCKKEERR", "get root")
-
         val children = listOf<Object>()
         API.getCatalog()?.children()?.let {
             instanceName?.let { name ->
                 for (child in it)
                     if (child.type == 72) {
-
                         var count = 0
                         for (connection in child.children()){
                             count++
-                            Log.e("TTRRAACCKKEERR", "childrenToString " + connection.toString())
-                            Log.e("TTRRAACCKKEERR", "childrenParts " + connection.name + " : " + connection.path + connection.type)
                         }
-
-                        if (count>1)
-                            Log.e(Constants.tag, "count is " + count)
-
                         for (connection in child.children())
-
                             if (connection.name.startsWith(name)) {
                                 API.setProperty("http/timeout", "2500")
                                 this.connection = Object.forceChildToNGWResourceGroup(connection)

@@ -164,11 +164,27 @@
                     android:id="@+id/divTrackByDay"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
+                    android:layout_marginTop="16dp"
+
                     android:checked="false"
                     android:text="@string/divide_tracks_by_days"
                     android:textColorLink="@color/colorSectionText"
                     android:textSize="16sp" />
+
+<!--            <androidx.appcompat.widget.SwitchCompat-->
+<!--                    android:id="@+id/restoreTrackAfterRestart"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginBottom="16dp"-->
+<!--                    android:layout_marginLeft="16dp"-->
+<!--                    android:layout_marginRight="16dp"-->
+<!--                    android:layout_marginTop="8dp"-->
+<!--                    android:text="@string/track_restore"-->
+<!--                    android:textColorLink="@color/colorSectionText"-->
+<!--                    android:textSize="16sp" />-->
 
             <com.nextgis.maplib.control.Combobox
                     android:id="@+id/timeInterval"
@@ -245,6 +261,22 @@
                     combobox:default_value="100"
                     combobox:entries="@array/max_pt_count"
                     combobox:values="@array/max_pt_count_val" />
+
+<!--            <Button-->
+<!--                    android:id="@+id/button_save_log"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="save log to file"-->
+<!--                     />-->
+
+<!--            <Button-->
+<!--                    android:id="@+id/button_export_log"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="export log"-->
+<!--                    />-->
+
+
         </LinearLayout>
     </ScrollView>
 

@@ -23,7 +23,7 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <external-cache-path
             name="external_cache_files"
-            path="./share/" />
+            path="." />
     <external-files-path
             name="external_files_files"
             path="." />

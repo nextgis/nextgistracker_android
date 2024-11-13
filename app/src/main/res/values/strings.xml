@@ -26,6 +26,7 @@
     <string name="tracks">Tracks</string>
     <string name="sync">Sync</string>
     <string name="divide_tracks_by_days">Divide tracks by days</string>
+    <string name="track_restore">Restore current track after reboot</string>
     <string name="send_to_web_gis"> Sync with the cloud</string>
     <string name="coord_pick_interval">Coordinate pick time interval</string>
     <string name="most_frequently">Most frequently</string>
@@ -34,7 +35,7 @@
     <string name="send_to_ngw_explanation_webgis">your Web GIS.</string>
     <string name="device_id">Device ID</string>
     <string name="sync_with_ngw">Sync with web GIS</string>
-    <string name="sync_interval_sec">Sync interval, sec</string>
+    <string name="sync_interval_sec">Sync interval</string>
     <string name="max_pt_send_at_once">Max points to send at once</string>
     <string name="share_device_id">Share device ID</string>
     <string name="create_in_ngw">Create in web GIS</string>
@@ -65,8 +66,22 @@
     <string name="permissions">Permissions</string>
     <string name="requested_permissions">Application needs some permissions to work properly. It includes writing to external storage (to save data on card),
         access to location services and getting contacts (to create and manage web accounts).</string>
+    <string name="requested_permissions_fineloc">Need fine location permission</string>
+
 
     <string name="delete">Delete</string>
 
     <string name="copied">Text copied to clipboard</string>
+
+    <string name="tracker_error_header">Tracker error</string>
+    <string name="tracker_error_text">Tracker is not registered on server, sending data is set to off</string>
+    <string name="no_internet">No Internet connection - try later</string>
+    <string name="tracker_created">Tracker is created</string>
+    <string name="tracker_folder_unable_created">Failed to create tracker folder - try creating it manually: </string>
+    <string name="tracker_unable_created">Failed to create tracker - try creating it manually: </string>
+    <string name="create_by_manual">create manually</string>
+    <string name="settings_changes">To apply changes need to restart track recording</string>
+    <string name="error_export_track">Error on export track</string>
+    <string name="error_save_file">Error on file save to device</string>
+    <string name="save_file_complete">File has been saved</string>
 </resources>

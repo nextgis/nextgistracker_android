@@ -27,8 +27,11 @@ import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.Context
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.nextgis.maplib.Constants
+import com.nextgis.maplib.Constants.Settings.sendIntervalKey
 import com.nextgis.tracker.R
 
 const val AUTHORITY = "com.nextgis.tracker"
@@ -45,9 +48,10 @@ abstract class BaseActivity : AppCompatActivity() {
     }
 
     protected fun enableSync(interval: Long) {
-        val account = getAccount() ?: createSyncAccount()
-        ContentResolver.setSyncAutomatically(account, AUTHORITY, true)
-        ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle.EMPTY, interval)
+//        val account = getAccount() ?: createSyncAccount()
+//        ContentResolver.setSyncAutomatically(account, AUTHORITY, true)
+//        ContentResolver.setIsSyncable(account, AUTHORITY, 1)
+//        ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle.EMPTY, interval)
     }
 
     @SuppressLint("MissingPermission")
@@ -67,6 +71,16 @@ abstract class BaseActivity : AppCompatActivity() {
                 Toast.makeText(this, R.string.create_account_failed, Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+
+    public fun startManualSync(){
+            val account = getAccount() ?: createSyncAccount()
+            val settingsBundle = Bundle().apply {
+                putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true)
+                putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true)
+            }
+            ContentResolver.requestSync(account, AUTHORITY, settingsBundle);
     }
 
 }

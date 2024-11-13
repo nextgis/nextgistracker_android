@@ -38,6 +38,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+
 
 
     <uses-feature
@@ -45,6 +48,7 @@
             android:required="true"/>
 
     <application
+            android:name=".MainApplication"
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
             android:installLocation="auto"
@@ -52,19 +56,19 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <meta-data
-                android:name="com.google.android.actions"
-                android:resource="@xml/syncadapter"/>
 
         <activity
                 android:name=".activity.MainActivity"
                 android:label="@string/app_name"
                 android:theme="@style/AppTheme"
-                android:exported="true">
+                android:exported="true"
+                android:launchMode="singleTop"
+                >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name=".CUSTOM_SHARE_INTENT"/>
             </intent-filter>
         </activity>
 
@@ -85,13 +89,15 @@
 
         <service
                 android:name="com.nextgis.maplib.service.SyncService"
-                android:exported="true">
+                android:exported="true"
+                android:foregroundServiceType="dataSync"
+                >
             <intent-filter>
                 <action android:name="android.content.SyncAdapter"/>
             </intent-filter>
             <meta-data
                     android:name="android.content.SyncAdapter"
-                    android:resource="@xml/syncadapter"/>
+                    android:resource="@xml/syncadapter" />
         </service>
 
         <provider
@@ -112,7 +118,9 @@
         <service
                 android:name=".provider.AuthService"
                 android:enabled="true"
-                android:exported="true">
+                android:exported="true"
+                android:foregroundServiceType="dataSync"
+                >
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator"/>
             </intent-filter>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Project:  NextGIS Tracker
+  ~ Purpose:  Software tracker for nextgis.com cloud
+  ~ Author:   Dmitry Baryshnikov <dmitry.baryshnikov@nextgis.com>
+  ~ *****************************************************************************
+  ~ Copyright (c) 2018-2024 NextGIS <info@nextgis.com>
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <string name="app_name">NextGIS Tracker</string>
+    <string name="action_settings">Настройки</string>
+    <string name="tracks">Треки</string>
+    <string name="sync">Синхронизировать</string>
+    <string name="divide_tracks_by_days">Разделить треки по дням</string>
+    <string name="track_restore">Восстановить текущий трек после перезагрузки</string>
+    <string name="send_to_web_gis">Синхронизировать с облаком</string>
+    <string name="coord_pick_interval">Частота выбора координат</string>
+    <string name="most_frequently">Наиболее часто</string>
+    <string name="minimum_distance">Мин. расстояние выбора координат</string>
+    <string name="send_to_ngw_explanation">Автоматически отправлять информацию об отслеживании в</string>
+    <string name="send_to_ngw_explanation_webgis">ваш веб-ГИС.</string>
+    <string name="device_id">Ваш ID</string>
+    <string name="sync_with_ngw">Синхронизировать с Web GIS</string>
+    <string name="sync_interval_sec">Интервал синхронизации</string>
+    <string name="max_pt_send_at_once">Макс. кол-во точек отправки за раз</string>
+    <string name="share_device_id">Поделиться идентификатором устройства</string>
+    <string name="create_in_ngw">Создать в веб-ГИС</string>
+    <string name="refresh_device_id">Обновить идентификатор устройства</string>
+    <string name="refresh_device_id_message">Вы уверены, что хотите изменить идентификатор устройства?
+        В случае, если устройство было зарегистрировано в веб-ГИС, передача треков будет остановлена. После изменения
+        идентификатор устройства, его необходимо снова добавить в веб-ГИС.</string>
+    <string name="change">Изменить</string>
+    <string name="tracker_image">Трекер</string>
+    <string name="more_menu">Дополнительное меню</string>
+    <string name="track_days">%d дней</string>
+    <string name="share_gpx">Поделиться id трекера</string>
+    <string name="share_text">Пожалуйста, добавьте мой трекер с id \'%s\' в ваш веб-ГИС.</string>
+    <string name="share_subj">Добавить трекер в NextGIS Web</string>
+    <string name="share_tracker_id">Поделиться id трекера</string>
+    <string name="send_track">Отправить трек %s</string>
+    <string name="add_item">Добавить элемент</string>
+    <string name="create_folder">Создать папку</string>
+    <string name="create_tracker_group">Создать группу трекеров</string>
+    <string name="create_tracker">Добавить трекер</string>
+    <string name="add_instance">Добавить веб-ГИС</string>
+    <string name="resource_name">Имя ресурса</string>
+    <string name="parent_tracker">Родительская группа должна быть группой трекеров</string>
+    <string name="parent_tracker_not">Невозможно создать группу трекеров в этом месте</string>
+    <string name="create_account_failed">Не удалось создать учетную запись</string>
+    <string name="parent_folder_not">Невозможно создать папку в этом месте</string>
+    <string name="permissions">Разрешения</string>
+    <string name="requested_permissions">Для правильной работы приложения необходимы разрешения к службам определения местоположения и получение контактов (для создания веб-аккаунтов и управления ими).</string>
+    <string name="requested_permissions_fineloc">Необходимы разрешения к службам определения точного местоположения</string>
+    <string name="delete">Удалить</string>
+    <string name="copied">Текст скопирован в буфер обмена</string>
+
+    <string name="tracker_error_header">Ошибка</string>
+    <string name="tracker_error_text">Трекер больше не зарегистрирован в облаке, отправка данных отключенна</string>
+    <string name="no_internet">Нет интернет-соединенния, попробуйте позже</string>
+    <string name="tracker_created">Трекер создан</string>
+    <string name="tracker_folder_unable_created">Ошибка создания папки трекеров,- попробуйте создать вручную: </string>
+    <string name="tracker_unable_created">Ошибка создания трекера - попробуйте создать вручную: </string>
+    <string name="create_by_manual">Создать вручную</string>
+    <string name="settings_changes">Для использования изменений необходимо перезапустить запись трека</string>
+    <string name="error_export_track">Ошибка при экспорте трека</string>
+    <string name="error_save_file">Ошибка при сохранении файла</string>
+    <string name="save_file_complete">Файл сохранён</string>
+
+</resources>

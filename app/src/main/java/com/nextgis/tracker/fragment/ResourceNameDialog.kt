@@ -34,7 +34,6 @@ import com.nextgis.tracker.R
 import com.nextgis.tracker.databinding.DialogResourceNameBinding
 import kotlin.concurrent.thread
 
-
 class ResourceNameDialog() : DialogFragment() {
     private lateinit var listener: (name: String) -> Unit
 
@@ -51,7 +50,6 @@ class ResourceNameDialog() : DialogFragment() {
         _binding = DialogResourceNameBinding.inflate(LayoutInflater.from(context))
         dialog.setContentView(binding.root)
         binding.fragment = this
-
         return dialog
     }
 
@@ -75,9 +73,7 @@ class ResourceNameDialog() : DialogFragment() {
             activity?.runOnUiThread{
                 dismiss()
             }
-
         }
-
     }
 
     fun cancel() {

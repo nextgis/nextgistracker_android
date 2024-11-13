@@ -59,12 +59,12 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
 
         val picker = FilePickerFragment()
         picker.setTracker() // set tracker use
-        supportFragmentManager.beginTransaction().add(R.id.container, picker, "PickerFragment")
+        supportFragmentManager.beginTransaction().add(R.id.container, picker, FilePickerFragment.TAG)
             .commit()
     }
     internal val parent: Object?
         get() {
-            (supportFragmentManager.findFragmentByTag("PickerFragment") as? FilePickerFragment)?.current?.let { return it }
+            (supportFragmentManager.findFragmentByTag(FilePickerFragment.TAG) as? FilePickerFragment)?.current?.let { return it }
             return connection
         }
 
@@ -110,7 +110,8 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
         return when (item.itemId) {
             android.R.id.home -> {
                 // check fragment back action
-                val filepickerFragment = supportFragmentManager.findFragmentByTag("PickerFragment") as FilePickerFragment
+
+                val filepickerFragment = supportFragmentManager.findFragmentByTag(FilePickerFragment.TAG) as FilePickerFragment
                 if (filepickerFragment == null || !filepickerFragment.processback(true)){
                     finish()
                     true
@@ -153,7 +154,7 @@ class ContentInstanceActivity : AppCompatActivity(), PickerActivity {
     }
 
     private fun refreshOrError(result: Object?) {
-        (supportFragmentManager.findFragmentByTag("PickerFragment") as? FilePickerFragment)?.refresh()
+        (supportFragmentManager.findFragmentByTag(FilePickerFragment.TAG) as? FilePickerFragment)?.refresh()
         if (result == null) {
             runOnUiThread {
                 Toast.makeText(this, API.lastError(), Toast.LENGTH_SHORT).show()
