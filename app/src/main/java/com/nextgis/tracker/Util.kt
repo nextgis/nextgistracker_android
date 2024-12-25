@@ -23,6 +23,10 @@
 package com.nextgis.tracker
 import android.content.Context
 import android.content.Intent
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.URLSpan
+import android.widget.TextView
 import com.nextgis.maplib.service.TrackerService
 import com.nextgis.maplib.startTrackerService
 import com.nextgis.tracker.activity.MainActivity
@@ -33,4 +37,13 @@ internal fun startService(context: Context, command: TrackerService.Command, opt
     } else {
         startTrackerService(context, command, null, options)
     }
+}
+
+internal fun highlightText(textView: TextView) {
+    val text = textView.text
+    val spannableString = SpannableString(text)
+    spannableString.setSpan(
+        URLSpan(""), 0, spannableString.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+    )
+    textView.setText(spannableString, TextView.BufferType.SPANNABLE)
 }

@@ -23,12 +23,13 @@
 <resources>
     <string name="app_name">NextGIS Tracker</string>
     <string name="action_settings">Settings</string>
+    <string name="action_about">About</string>
     <string name="tracks">Tracks</string>
     <string name="sync">Sync</string>
     <string name="divide_tracks_by_days">Divide tracks by days</string>
     <string name="track_restore">Restore current track after reboot</string>
     <string name="send_to_web_gis"> Sync with the cloud</string>
-    <string name="coord_pick_interval">Coordinate pick time interval</string>
+    <string name="coord_pick_interval">Pick coordinates every …</string>
     <string name="most_frequently">Most frequently</string>
     <string name="minimum_distance">Minimum distance to pick coordinates</string>
     <string name="send_to_ngw_explanation">Automatically send tracking information to</string>
@@ -84,4 +85,19 @@
     <string name="error_export_track">Error on export track</string>
     <string name="error_save_file">Error on file save to device</string>
     <string name="save_file_complete">File has been saved</string>
-</resources>
+
+    <string name="add_instance_sync">Sync with the cloud</string>
+    <!-- Strings used for fragments for navigation -->
+
+    <string name="tracker_details">NextGIS Tracker automatically collect tracks in the field and syncronize with your Web GIS in the cloud or on premise.</string>
+    <string name="tracker_details_newngw"><![CDATA[If you don\'t have a Web GIS, you can get one <a href=\"https://my.nextgis.com/signup/?next=/webgis/\">here</a>]]></string>
+    <string name="tracker_details_techsupport">Technical support</string>
+    <string name="tracker_details_techsupport_url">support@nextgis.com</string>
+    <string name="tracker_details_telegram">Telegram</string>
+    <string name="tracker_details_telegram_url">"@nextgis_talks"</string>
+    <string name="tracker_details_telegram_url_bin">"nextgis_talks"</string>
+    <string name="tracker_details_allcontacts">All contacts</string>
+    <string name="tracker_details_allcontacts_url">https://nextgis.com/contact</string>
+    <string name="not_installed">Application not installed</string>
+
+    </resources>

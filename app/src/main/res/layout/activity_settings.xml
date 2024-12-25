@@ -33,7 +33,8 @@
     <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:theme="@style/AppTheme.AppBarOverlay">
+            android:theme="@style/AppTheme.AppBarOverlay"
+            >
 
         <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -41,16 +42,16 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
                 app:contentInsetStartWithNavigation="0dp"
-                app:popupTheme="@style/AppTheme.PopupOverlay" />
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                />
 
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            >
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -123,18 +124,6 @@
                             android:textSize="16sp" />
                 </LinearLayout>
 
-                <!--                <ImageView-->
-                <!--                        android:id="@+id/regenerateId"-->
-                <!--                        android:layout_width="wrap_content"-->
-                <!--                        android:layout_height="wrap_content"-->
-                <!--                        android:layout_gravity="center"-->
-                <!--                        android:layout_marginTop="8dp"-->
-                <!--                        android:layout_weight="1"-->
-                <!--                        android:contentDescription="@string/refresh_device_id"-->
-                <!--                        android:minWidth="32dp"-->
-                <!--                        android:minHeight="32dp"-->
-                <!--                        combobox:srcCompat="@drawable/ic_refresh" />-->
-
                 <ImageView
                         android:id="@+id/shareId"
                         android:layout_width="wrap_content"
@@ -174,18 +163,6 @@
                     android:textColorLink="@color/colorSectionText"
                     android:textSize="16sp" />
 
-<!--            <androidx.appcompat.widget.SwitchCompat-->
-<!--                    android:id="@+id/restoreTrackAfterRestart"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_marginBottom="16dp"-->
-<!--                    android:layout_marginLeft="16dp"-->
-<!--                    android:layout_marginRight="16dp"-->
-<!--                    android:layout_marginTop="8dp"-->
-<!--                    android:text="@string/track_restore"-->
-<!--                    android:textColorLink="@color/colorSectionText"-->
-<!--                    android:textSize="16sp" />-->
-
             <com.nextgis.maplib.control.Combobox
                     android:id="@+id/timeInterval"
                     android:layout_width="match_parent"
@@ -202,47 +179,7 @@
                     app:default_value="50"
                     combobox:alt_text="@string/minimum_distance"
                     combobox:entries="@array/tracker_min_dist_update"
-                    combobox:values="@array/tracker_min_dist_update_val"></com.nextgis.maplib.control.Combobox>
-
-<!--            <TextView-->
-<!--                    android:id="@+id/sync_tv"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_marginLeft="16dp"-->
-<!--                    android:layout_marginTop="16dp"-->
-<!--                    android:layout_marginRight="16dp"-->
-<!--                    android:text="@string/sync_with_ngw"-->
-<!--                    android:textColor="@color/colorSectionText"-->
-<!--                    android:textStyle="bold" />-->
-
-<!--            <LinearLayout-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="match_parent"-->
-<!--                    android:layout_marginStart="16dp"-->
-<!--                    android:layout_marginTop="16dp"-->
-<!--                    android:layout_marginEnd="16dp"-->
-<!--                    android:orientation="horizontal">-->
-
-<!--                <Button-->
-<!--                        android:id="@+id/shareButton"-->
-<!--                        style="@style/Widget.AppCompat.Button.Borderless"-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:layout_weight="1"-->
-<!--                        android:text="@string/share_device_id"-->
-<!--                        android:textColor="@color/colorSectionText" />-->
-
-<!--                <Button-->
-<!--                        android:id="@+id/createInNgwButton"-->
-<!--                        style="@style/Widget.AppCompat.Button.Borderless"-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:layout_weight="1"-->
-<!--                        android:text="@string/create_in_ngw"-->
-<!--                        android:textColor="@color/colorSectionText" />-->
-<!--            </LinearLayout>-->
-
-
+                    combobox:values="@array/tracker_min_dist_update_val"/>
 
             <com.nextgis.maplib.control.Combobox
                     android:id="@+id/sendInterval"
@@ -261,25 +198,8 @@
                     combobox:default_value="100"
                     combobox:entries="@array/max_pt_count"
                     combobox:values="@array/max_pt_count_val" />
-
-<!--            <Button-->
-<!--                    android:id="@+id/button_save_log"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:text="save log to file"-->
-<!--                     />-->
-
-<!--            <Button-->
-<!--                    android:id="@+id/button_export_log"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:text="export log"-->
-<!--                    />-->
-
-
         </LinearLayout>
     </ScrollView>
-
 
     <RelativeLayout
             android:id="@+id/progressloaderarea"
@@ -287,14 +207,12 @@
             android:layout_height="match_parent"
             android:background="#44000000"
             android:visibility="gone"
-
             >
         <ProgressBar
                 android:layout_centerInParent="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-
                 />
     </RelativeLayout>
 

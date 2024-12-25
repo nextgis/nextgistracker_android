@@ -67,19 +67,19 @@ import com.nextgis.tracker.databinding.ActivitySettingsBinding
 import java.util.Stack
 
 const val CONTENT_ACTIVITY = 604
-//const val CATLOG_FILE = "catlog_current_file"
-//const val FILE_FLDR = "logcat"
 
 class SettingsActivity : BaseActivity() {
 
+    companion object {
+        const val START_FROM_MAIN = 45698
+    }
+
     private lateinit var binding: ActivitySettingsBinding
 
-    private var connection: Object? = null
+
     private val stack = Stack<Object>()
     val path = NonNullObservableField("/")
-    val current: Object? get() = if (stack.isNotEmpty()) stack.peek() else null
 
-    private val mHandler = Handler()
     private var mRegenerateDialogIsShown = false
 
     private var mTrackerService: TrackerService? = null
@@ -123,77 +123,8 @@ class SettingsActivity : BaseActivity() {
         val sharedPrefMain = getDefaultSharedPreferences(this)
         updateSendToNGWPrompt(binding.syncNgwTv, sharedPrefMain)
 
-        if (sharedPrefMain.getBoolean(Constants.Settings.sendTracksToNGWKey, false)){
-            runAsync {
-                if (!Track.isRegistered()){
-                    sharedPrefMain.edit().remove(webGisNameKey).apply()
-                    // turn send off
-                    runOnUiThread{
-                        binding.sendToNgw.isChecked = false
-                        updateSendToNGWPrompt(binding.syncNgwTv, getDefaultSharedPreferences(this))
-                    }
-
-                    with (sharedPref.edit()) {
-                        putBoolean(Constants.Settings.sendTracksToNGWKey, false)
-                        commit()
-                    // alert
-                        runOnUiThread{
-                            AlertDialog.Builder(this@SettingsActivity)
-                                .setTitle(R.string.tracker_error_header)
-                                .setMessage(R.string.tracker_error_text )
-                                .setPositiveButton(android.R.string.ok) { _, _ -> {}}
-                                .create()
-                                .show()
-                        }
-                    }
-                }
-            }
-        }
-
-        binding.sendToNgw.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isChecked){
-                showProgress()
-                runAsync {
-                    // check internet
-                    if (!isInternetAvailable(context = this)){
-                        runOnUiThread {
-                            hideProgress()
-                            binding.sendToNgw.isChecked=false
-                            Toast.makeText(getBaseContext(), R.string.no_internet, Toast.LENGTH_LONG).show()
-                        }
-                        return@runAsync
-                    }
-                    if (!Track.isRegistered()){
-                        // start tracker creation - first login to NGW
-                        runOnUiThread({
-                            val intent = Intent(this, AddInstanceActivity::class.java)
-                            startActivityForResult(intent, AddInstanceActivity.ADD_INSTANCE_TO_CREATE_TRACKER_REQUEST)
-                        })
-
-                    } else {
-                        // tracker already registered
-                        val sharedPref = getDefaultSharedPreferences(this)
-                        with (sharedPref.edit()) {
-                            putBoolean(Constants.Settings.sendTracksToNGWKey, binding.sendToNgw.isChecked)
-                            apply()
-                        }
-                        runOnUiThread({
-                            hideProgress()
-                        })
-                    }
-                }
-            } else {
-                val sharedPref = getDefaultSharedPreferences(this)
-                with (sharedPref.edit()) {
-                    putBoolean(Constants.Settings.sendTracksToNGWKey, binding.sendToNgw.isChecked)
-                    commit()
-                }
-            }
-        }
-
-        if(binding.sendToNgw.isChecked) {
-            binding.sendToNgw.isEnabled = true
-        }
+        checkSendStillAvailable(sharedPrefMain, binding.sendToNgw, binding.syncNgwTv)
+        setupOnSendClick(binding.sendToNgw)
 
         binding.shareId.setOnClickListener(){
             val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
@@ -203,23 +134,13 @@ class SettingsActivity : BaseActivity() {
         }
     }
 
-    fun updateSendToNGWPrompt(textView : TextView,  sharedPref : SharedPreferences){
-        val gisName = sharedPref.getString(webGisNameKey, "")
-        if (TextUtils.isEmpty(gisName)){
-            //default text
-            val prompt = getString(R.string.send_to_ngw_explanation) + " " + getString(R.string.send_to_ngw_explanation_webgis)
-            textView.setText(prompt)
-        } else {
-            val prompt = getString(R.string.send_to_ngw_explanation) + " " + gisName
-            textView.setText(prompt)
-        }
-    }
 
-    fun showProgress(){
+
+    override fun showProgress(){
         binding.progressloaderarea.visibility = View.VISIBLE
     }
 
-    fun hideProgress(){
+    override fun hideProgress(){
         binding.progressloaderarea.visibility = View.GONE
     }
 
@@ -239,77 +160,7 @@ class SettingsActivity : BaseActivity() {
                     }
             }
             AddInstanceActivity.ADD_INSTANCE_TO_CREATE_TRACKER_REQUEST -> {
-                showProgress()
-                runAsync {
-                    if (resultCode == Activity.RESULT_OK) {
-                        runOnUiThread { showProgress() }
-                        val instanceName = getInstanceURL()
-                        instanceName.let {
-                            val title = instanceName?.replace(".wconn", "")
-                            val rootList = root(instanceName!!)
-
-                            var trackerFolder: Object? = null
-                            for (item in rootList) {
-                                if ((item as Object).type == Object.Type.CONTAINER_NGWTRACKERGROUP.code) {
-                                    trackerFolder = item
-                                    break
-                                }
-                            }
-                            if (trackerFolder == null) {
-                                connection?.let {
-                                    trackerFolder =
-                                        NGWResourceGroup(it).createTrackerGroup("TrackersGroup")
-                                    if (trackerFolder == null) {
-                                        printError("tracker folder cannot be create: " + API.lastError())
-                                        // start manual create
-                                        runOnUiThread {  startManualTrackerCreate(true) }
-                                    }
-                                }
-                            } else {
-                                trackerFolder?.let {
-                                    val id = Track.getId(false)
-                                    val resultTracker = NGWTrackerGroup(it).createTracker(
-                                        "my_tracker_" + id,
-                                        tracker_id = id
-                                    )
-                                    if (resultTracker == null) {
-                                        printError("tracker create failed: " + API.lastError())
-                                        // start manual create
-                                        runOnUiThread{ startManualTrackerCreate(false) }
-
-                                    } else {
-                                        val sharedPrefForTitle = getDefaultSharedPreferences(this)
-                                        with(sharedPrefForTitle.edit()) {
-                                            putString(Constants.Settings.webGisNameKey, title)
-                                            commit()
-                                        }
-                                        runOnUiThread {
-                                            Toast.makeText(
-                                            this,
-                                            R.string.tracker_created,
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                            updateSendToNGWPrompt(binding.syncNgwTv, getDefaultSharedPreferences(this))
-
-                                        }
-
-                                        val sharedPref = getDefaultSharedPreferences(this)
-                                        with(sharedPref.edit()) {
-                                            putBoolean(Constants.Settings.sendTracksToNGWKey, true)
-                                            commit()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        runOnUiThread{
-                            binding.sendToNgw.isChecked = false
-                        }
-
-                    }
-                    runOnUiThread {  hideProgress() }
-                }
+               createTracker(resultCode, binding.sendToNgw, binding.syncNgwTv)
             }
 
             CONTENT_ACTIVITY -> {clearConnections()
@@ -322,20 +173,6 @@ class SettingsActivity : BaseActivity() {
         }
     }
 
-    private fun startManualTrackerCreate(isFolderError:Boolean ){
-        binding.sendToNgw.isChecked = false
-        AlertDialog.Builder(this)
-            .setTitle(R.string.tracker_error_header)
-            .setMessage(if (isFolderError) "\n" + getString(R.string.tracker_folder_unable_created)
-                    + API.lastError() else getString(R.string.tracker_unable_created) + API.lastError())
-            .setPositiveButton(R.string.create_by_manual) { _, _ ->
-                getInstanceURL()?.let { launchContentSelector(it)}
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> {} }
-            .create()
-            .show()
-    }
-
     private fun clearConnections() {
         API.getCatalog()?.children()?.let {
             for (child in it)
@@ -343,16 +180,6 @@ class SettingsActivity : BaseActivity() {
                     child.children().map { connection -> connection.delete() }
                 }
         }
-    }
-
-    private fun getInstanceURL(): String? {
-        return API.getCatalog()?.children()?.firstOrNull { it.type == 72 }?.children()?.lastOrNull()?.name
-    }
-
-    private fun launchContentSelector(instance: String) {
-        val intent = Intent(this, ContentInstanceActivity::class.java)
-        intent.putExtra("instance", instance)
-        startActivityForResult(intent, CONTENT_ACTIVITY)
     }
 
     private fun showRegenerateDialog() {
@@ -441,27 +268,4 @@ class SettingsActivity : BaseActivity() {
         }
     }
 
-    fun root(instanceName:String): List<Object> {
-        val children = listOf<Object>()
-        API.getCatalog()?.children()?.let {
-            instanceName?.let { name ->
-                for (child in it)
-                    if (child.type == 72) {
-                        var count = 0
-                        for (connection in child.children()){
-                            count++
-                        }
-                        for (connection in child.children())
-                            if (connection.name.startsWith(name)) {
-                                API.setProperty("http/timeout", "2500")
-                                this.connection = Object.forceChildToNGWResourceGroup(connection)
-                                val list = connection.children().toList()
-                                return list
-                            }
-                    }
-            }
-            return arrayListOf()
-        }
-        return children
-    }
 }

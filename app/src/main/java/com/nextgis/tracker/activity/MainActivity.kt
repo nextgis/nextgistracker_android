@@ -43,10 +43,12 @@ import android.preference.PreferenceManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -55,6 +57,7 @@ import com.nextgis.maplib.Constants
 import com.nextgis.maplib.Constants.Settings.sendIntervalKey
 import com.nextgis.maplib.Location
 import com.nextgis.maplib.TrackInfo
+import com.nextgis.maplib.activity.AddInstanceActivity
 import com.nextgis.maplib.checkPermission
 import com.nextgis.maplib.fragment.LocationInfoFragment
 import com.nextgis.maplib.printError
@@ -64,6 +67,7 @@ import com.nextgis.maplib.service.TrackerService
 import com.nextgis.tracker.BuildConfig
 import com.nextgis.tracker.MainApplication
 import com.nextgis.tracker.R
+import com.nextgis.tracker.activity.SettingsActivity.Companion.START_FROM_MAIN
 import com.nextgis.tracker.adapter.TrackAdapter
 import com.nextgis.tracker.databinding.ActivityMainBinding
 import com.nextgis.tracker.startService
@@ -80,16 +84,11 @@ const val SENTRY_DSN = BuildConfig.TRACKER_SENTRY_DSN
 private const val NGT_PERMISSIONS_REQUEST_INTERNET = 771
 private const val NGT_PERMISSIONS_REQUEST_GPS = 772
 private const val NGT_PERMISSIONS_REQUEST_WAKE_LOCK = 773
-
 const val PERMISSIONS_REQUEST = 1
 const val LOCATION_REQUEST = 2
 
-
 class MainActivity : BaseActivity(),
     PopupMenu.OnMenuItemClickListener, GpsStatus.Listener, LocationListener  {
-
-
-
     companion object const {
         val PERMISSIONS_REQUEST: Int = 1
         val CUSTOM_INTENT_ACTION = "com.nextgis.tracker.CUSTOM_SHARE_INTENT"
@@ -247,6 +246,11 @@ class MainActivity : BaseActivity(),
         if(mHasGPSPerm) {
             setupFab()
         }
+        val  syncSwitch = binding.toolbar.findViewById<SwitchCompat>(R.id.switch_sync)
+
+        updateSyncMenuItem()
+        setupOnSendClick(syncSwitch)
+        checkSendStillAvailable(sharedPref, syncSwitch, null)
     }
 
     fun stopGPS(){
@@ -279,19 +283,6 @@ class MainActivity : BaseActivity(),
                 mLocationManager?.requestLocationUpdates(provider, minTime, minDist, this)
             }
         }
-//        else {
-//            if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
-//                AlertDialog.Builder(this)
-//                    .setTitle("Permission")
-//                    .setMessage("for work app need Fine Location perm")
-//                    .setPositiveButton("OK") { _, _ ->
-//
-//                    }
-//                    .setNegativeButton(android.R.string.cancel) { _, _ -> {} }
-//                    .create()
-//                    .show()
-//            }
-//        }
     }
 
     fun deleteTrack(trackInfo: TrackInfo){
@@ -350,19 +341,6 @@ class MainActivity : BaseActivity(),
                 startService(this, TrackerService.Command.STOP)
             }
             else {
-//                if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
-//                    AlertDialog.Builder(this)
-//                        .setTitle("Permission")
-//                        .setMessage("for work, app need Fine Location perm")
-//                        .setPositiveButton("ask perm") { _, _ ->
-//                            askFineLocalPermission()
-//                        }
-//                        .setNegativeButton(android.R.string.cancel) { _, _ -> {} }
-//                        .create()
-//                        .show()
-//                    return@setOnClickListener
-//                }
-
                 TrackerService.showBackgroundDialog(this, object : TrackerService.BackgroundPermissionCallback {
                     override fun beforeAndroid10(hasBackgroundPermission: Boolean) {
                         if (!hasBackgroundPermission) {
@@ -429,6 +407,13 @@ class MainActivity : BaseActivity(),
         return when (item.itemId) {
             R.id.action_settings -> {
                 val intent = Intent(this, SettingsActivity::class.java)
+                startActivityForResult(intent, START_FROM_MAIN)
+
+                return true
+            }
+
+            R.id.action_about -> {
+                val intent = Intent(this, AboutActivity::class.java)
                 startActivity(intent)
                 return true
             }
@@ -584,18 +569,6 @@ class MainActivity : BaseActivity(),
         super.onActivityReenter(resultCode, data)
     }
 
-//    override fun onNewIntent(intent: Intent?) {
-//        super.onNewIntent(intent)
-//
-//        if (intent?.action == "SAVE_FILE") {
-//            val fileUri: Uri? = intent.getParcelableExtra("fileUri")
-//            fileUri?.let {
-//                val  fileOfData = (applicationContext as MainApplication).getFileToSave()
-//                saveFileToDestination(intent, fileOfData)
-//            }
-//        }
-//    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -604,8 +577,19 @@ class MainActivity : BaseActivity(),
                 val fileOfData = (applicationContext as MainApplication).getFileToSave()
                 saveFileToDestination(data, fileOfData)
             }
-
         }
+
+        when (requestCode) {
+            AddInstanceActivity.ADD_INSTANCE_TO_CREATE_TRACKER_REQUEST -> {
+                val  syncSwitch = binding.toolbar.findViewById<SwitchCompat>(R.id.switch_sync)
+                createTracker(resultCode, syncSwitch, null)
+            }
+
+            START_FROM_MAIN -> { // check send  was on
+                updateSyncMenuItem()
+            }
+        }
+
     }
 
     private fun saveFileToDestination(destination: Intent, inputData: File?) {
@@ -635,7 +619,6 @@ class MainActivity : BaseActivity(),
                                 .setPositiveButton(android.R.string.ok, null)
                                 .create()
                                 .show()
-                            //Toast.makeText(activity, R.string.error_on_save, Toast.LENGTH_LONG).show();
                             printError(if (ex.message == null ) ex.toString() else ex.message!! )
                         } finally {
                             output!!.close()
@@ -652,43 +635,22 @@ class MainActivity : BaseActivity(),
                 printError(if (exception.message == null ) exception.toString() else exception.message!!)
             }
         }
+
+
+        fun updateSyncMenuItem(){
+            val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+            val  syncSwitch = binding.toolbar.findViewById<SwitchCompat>(R.id.switch_sync)
+            syncSwitch?.isChecked = sharedPref.getBoolean(Constants.Settings.sendTracksToNGWKey, false)
+
+        }
+
+
+    override fun showProgress(){
+        binding.progressloaderarea.visibility = View.VISIBLE
     }
 
-//    private fun saveFileToDownloads(fileUri: Uri) {
-//        try {
-//            // Папка для загрузок
-//            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-//            if (!downloadsDir.exists()) downloadsDir.mkdirs()
-//
-//            // Копируем файл в папку Downloads
-//            val inputStream: InputStream? = contentResolver.openInputStream(fileUri)
-//            val outputFile = File(downloadsDir, "shared_gpx_file.gpx")
-//            val outputStream: OutputStream = FileOutputStream(outputFile)
-//
-//            val buffer = ByteArray(1024)
-//            var length: Int
-//            while (inputStream?.read(buffer).also { length = it ?: -1 } != -1) {
-//                outputStream.write(buffer, 0, length)
-//            }
-//
-//            outputStream.close()
-//            inputStream?.close()
-//
-//            Toast.makeText(this, "Файл сохранен в папку Downloads", Toast.LENGTH_SHORT).show()
-//        } catch (e: Exception) {
-//            Toast.makeText(this, "Ошибка сохранения файла: ${e.message}", Toast.LENGTH_LONG).show()
-//        }
-//    }
+    override fun hideProgress(){
+        binding.progressloaderarea.visibility = View.GONE
+    }
 
-    //    fun askFineLocalPermission(){
-//        val permissions: ArrayList<String>
-//        permissions = arrayListOf( Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
-//
-//        requestPermissions( R.string.permissions, R.string.requested_permissions_fineloc,
-//            PERMISSIONS_REQUEST,
-//            permissions.toTypedArray())
-//
-//
-//        //ActivityCompat.requestPermissions(this, permissions.toTypedArray(), PERMISSIONS_REQUEST)
-//    }
-//}
+    }

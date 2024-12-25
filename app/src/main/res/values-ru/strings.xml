@@ -22,6 +22,7 @@
 <resources>
     <string name="app_name">NextGIS Tracker</string>
     <string name="action_settings">Настройки</string>
+    <string name="action_about">О программе</string>
     <string name="tracks">Треки</string>
     <string name="sync">Синхронизировать</string>
     <string name="divide_tracks_by_days">Разделить треки по дням</string>
@@ -78,5 +79,17 @@
     <string name="error_export_track">Ошибка при экспорте трека</string>
     <string name="error_save_file">Ошибка при сохранении файла</string>
     <string name="save_file_complete">Файл сохранён</string>
+
+    <string name="add_instance_sync">Синхронизировать с облаком</string>
+    <string name="tracker_details">Приложение для сбора треков и автоматической синхронизации их с вашей Веб ГИС в облаке или на своём сервере.</string>
+    <string name="tracker_details_newngw"><![CDATA[Если у вас нет Веб ГИС её можно завести <a href=\"https://my.nextgis.com/signup/?next=/webgis/\">тут</a>]]></string>
+    <string name="tracker_details_techsupport">Техническая поддержка</string>
+    <string name="tracker_details_techsupport_url">support@nextgis.ru</string>
+    <string name="tracker_details_telegram">Телеграм</string>
+    <string name="tracker_details_telegram_url">"@nextgis_chat"</string>
+    <string name="tracker_details_telegram_url_bin">"nextgis_chat"</string>
+    <string name="tracker_details_allcontacts">Все контакты</string>
+    <string name="tracker_details_allcontacts_url">https://nextgis.ru/contact</string>
+    <string name="not_installed">Приложение не установлено</string>
 
 </resources>
