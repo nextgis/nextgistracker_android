@@ -1,0 +1,4 @@
+[submodule "android_maplib"]
+	path = android_maplib
+	url = git@github.com:nextgis/android_maplib.git
+	branch = v3
