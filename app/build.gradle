@@ -27,11 +27,11 @@ apply plugin: 'kotlin-kapt'
 android {
     defaultConfig {
         applicationId "com.nextgis.tracker"
-        minSdkVersion 21
+        minSdkVersion 26
         compileSdk 34
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         Properties properties = new Properties()
