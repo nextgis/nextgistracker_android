@@ -2,5 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/android_maplib" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/android_maplib/maplib/src/main/ngstore" vcs="Git" />
   </component>
 </project>

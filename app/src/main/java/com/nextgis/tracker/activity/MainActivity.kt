@@ -104,6 +104,8 @@ class MainActivity : BaseActivity(),
     private var mHasInternetPerm = false
     private var mHasGPSPerm = false
     private var mIsServiceRunning = false
+    private var mIsServicePaused = false
+
 
     private var mTrackerService: TrackerService? = null
     private var mIsBound = false
@@ -129,6 +131,7 @@ class MainActivity : BaseActivity(),
 
         override fun onStatusChanged(status: TrackerService.Status, trackName: String, trackStartTime: Date) {
             mIsServiceRunning = status == TrackerService.Status.RUNNING
+            mIsServicePaused = status == TrackerService.Status.PAUSED
             val formatter = DateFormat.getTimeInstance()
             formatter.timeZone = TimeZone.getDefault()
 
@@ -338,7 +341,7 @@ class MainActivity : BaseActivity(),
         updateServiceStatus("",Date())
         binding.fab.setOnClickListener {
             if(mIsServiceRunning) {
-                startService(this, TrackerService.Command.STOP)
+                startService(this, TrackerService.Command.PAUSE)
             }
             else {
                 TrackerService.showBackgroundDialog(this, object : TrackerService.BackgroundPermissionCallback {
@@ -389,6 +392,14 @@ class MainActivity : BaseActivity(),
                     }
                 })
             }
+        }
+
+
+        binding.fabStop.setOnClickListener {
+            if(mIsServiceRunning || mIsServicePaused) {
+                startService(this, TrackerService.Command.STOP)
+            }
+
         }
     }
 
@@ -466,14 +477,16 @@ class MainActivity : BaseActivity(),
     }
 
     private fun updateServiceStatus(trackName:String, trackStartTime : Date) {
-        if (mIsServiceRunning) {
+        if (mIsServiceRunning || mIsServicePaused) {
             mTracksAdapter?.setOnProgress(true, trackName, trackStartTime)
-            binding.fab.setImageResource(R.drawable.ic_pause)
+            binding.fab.setImageResource(if (mIsServicePaused) R.drawable.ic_play else R.drawable.ic_pause)
+            binding.fabStop.visibility = View.VISIBLE
             mTracksAdapter?.refresh()
             stopGPS()
 
         }
         else {
+            binding.fabStop.visibility = View.GONE
             binding.fab.setImageResource(R.drawable.ic_play)
             mTracksAdapter?.setOnProgress(false, "", Date())
             mTrackerService?.clearTrackNameInProgress()

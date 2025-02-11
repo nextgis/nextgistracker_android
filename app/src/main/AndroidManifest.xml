@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        package="com.nextgis.tracker">
+        >
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -26,7 +26,7 @@
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
             android:installLocation="auto"
-            android:label="@string/app_name"
+            android:label="@string/APP_NAME"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
@@ -42,7 +42,7 @@
         <activity
                 android:name=".activity.MainActivity"
                 android:exported="true"
-                android:label="@string/app_name"
+                android:label="@string/APP_NAME"
                 android:launchMode="singleTop"
                 android:theme="@style/AppTheme">
             <intent-filter>
@@ -84,12 +84,12 @@
 
         <provider
                 android:name=".provider.StubProvider"
-                android:authorities="com.nextgis.tracker"
+                android:authorities="@string/provider_auth"
                 android:exported="false"
                 android:syncable="true" />
         <provider
                 android:name="androidx.core.content.FileProvider"
-                android:authorities="com.nextgis.tracker.provider"
+                android:authorities="${applicationId}.provider"
                 android:exported="false"
                 android:grantUriPermissions="true">
             <meta-data

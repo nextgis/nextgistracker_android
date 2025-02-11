@@ -22,7 +22,6 @@
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
 
 android {
     defaultConfig {
@@ -30,8 +29,8 @@ android {
         minSdkVersion 26
         compileSdk 34
         targetSdk 34
-        versionCode 2
-        versionName "1.0.0"
+        versionCode 4
+        versionName "1.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         Properties properties = new Properties()
@@ -57,14 +56,56 @@ android {
             keyAlias ANDROID_KEY
             keyPassword ANDROID_STORE_PASSWORD
         }
+        releasedev {
+            storeFile file('../../keystore_google')
+            storePassword ANDROID_STORE_PASSWORD
+            keyAlias ANDROID_KEY
+            keyPassword ANDROID_STORE_PASSWORD
+        }
     }
     buildTypes {
+
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            resValue 'string', 'APP_NAME', 'NextGIS Tracker'
+            resValue 'string', 'provider_auth', 'com.nextgis.tracker.provider'
+            resValue 'string', 'nextgis_tracker_accounts_auth', 'com.nextgis.tracker.account'
+            resValue 'string', 'nextgis_accounts_auth_type', 'com.nextgis.account'
+            buildConfigField "String", "providerAuth", '"com.nextgis.tracker.provider"'
+            buildConfigField "String", "nextgistracker_accounts_auth", '"com.nextgis.account3"'
             signingConfig signingConfigs.release
-
         }
+        releasedev {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-DEBUG'
+            resValue 'string', 'APP_NAME', 'DEV NextGIS Tracker'
+            resValue 'string', 'provider_auth', 'com.nextgis.tracker.provider.debug'
+            resValue 'string', 'nextgis_tracker_accounts_auth', 'com.nextgis.tracker.account.debug'
+            resValue 'string', 'nextgis_accounts_auth_type', 'com.nextgis.account.debug'
+            buildConfigField "String", "providerAuth", '"com.nextgis.tracker.provider.debug"'
+            buildConfigField "String", "nextgistracker_accounts_auth", '"com.nextgis.account3.debug"'
+            signingConfig signingConfigs.debug
+            debuggable false
+        }
+           debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-DEBUG'
+            resValue 'string', 'APP_NAME', 'DEV NextGIS Tracker'
+            resValue 'string', 'provider_auth', 'com.nextgis.tracker.provider.debug'
+            resValue 'string', 'nextgis_tracker_accounts_auth', 'com.nextgis.tracker.account.debug'
+            resValue 'string', 'nextgis_accounts_auth_type', 'com.nextgis.account.debug'
+            buildConfigField "String", "providerAuth", '"com.nextgis.tracker.provider.debug"'
+            buildConfigField "String", "nextgistracker_accounts_auth", '"com.nextgis.account3.debug"'
+            signingConfig signingConfigs.debug
+            debuggable true
+        }
+
+
     }
     dataBinding {
         enabled = true
@@ -97,7 +138,7 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20"
+//    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20"
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation "androidx.core:core-ktx:1.13.1"
     implementation 'com.google.android.material:material:1.12.0'
@@ -108,7 +149,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
-//    implementation "io.sentry:sentry-android:1.7.23"
+
 
     implementation ('io.sentry:sentry-android:7.14.0'){
         exclude group: 'androidx.lifecycle', module: 'lifecycle-viewmodel-ktx'

@@ -1,9 +1,9 @@
-<?xml version ="1.0" encoding ="utf-8"?><!--
+<!--
   ~ Project:  NextGIS Tracker
   ~ Purpose:  Software tracker for nextgis.com cloud
   ~ Author:   Dmitry Baryshnikov <dmitry.baryshnikov@nextgis.com>
   ~ *****************************************************************************
-  ~ Copyright (c) 2018-2019 NextGIS <info@nextgis.com>
+  ~ Copyright (c) 2018-2025 NextGIS <info@nextgis.com>
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -19,12 +19,15 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<sync-adapter
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:allowParallelSyncs="false"
-        android:contentAuthority="@string/provider_auth"
-        android:accountType="@string/nextgis_accounts_auth_type"
-
-        android:isAlwaysSyncable="true"
-        android:supportsUploading="true"
-        android:userVisible="true"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+        android:height="24dp"
+        android:tint="#000000"
+        android:viewportHeight="24"
+        android:viewportWidth="24"
+        android:width="24dp"
+        >
+      
+    <path android:fillColor="@android:color/white"
+            android:pathData="M6,6h12v12H6z"/>
+    
+</vector>

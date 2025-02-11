@@ -20,7 +20,7 @@
   -->
 
 <resources>
-    <string name="app_name">NextGIS Tracker</string>
+<!--    <string name="app_name">NextGIS Tracker</string>-->
     <string name="action_settings">Настройки</string>
     <string name="action_about">О программе</string>
     <string name="tracks">Треки</string>
@@ -32,7 +32,7 @@
     <string name="most_frequently">Наиболее часто</string>
     <string name="minimum_distance">Мин. расстояние выбора координат</string>
     <string name="send_to_ngw_explanation">Автоматически отправлять информацию об отслеживании в</string>
-    <string name="send_to_ngw_explanation_webgis">ваш веб-ГИС.</string>
+    <string name="send_to_ngw_explanation_webgis">вашу Веб ГИС.</string>
     <string name="device_id">Ваш ID</string>
     <string name="sync_with_ngw">Синхронизировать с Web GIS</string>
     <string name="sync_interval_sec">Интервал синхронизации</string>
